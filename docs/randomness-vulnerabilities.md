@@ -197,15 +197,6 @@ require(block.number >= lastActionBlock[msg.sender] + 100); // Block-based coold
 | Rate limiting/cooldowns | ✅ | ❌ | Prevents spam without randomness |
 | Sequential operations | ✅ | ❌ | Order-dependent logic |
 | Combination with other sources | ❌ | ✅ | Doesn't improve randomness |
-
-**⚡ Security Rule:** Safe only for timing control and sequential logic, never for randomness generation
-
-**References:** 
-- [DASP Top 10 - Bad Randomness](https://dasp.co/)
-- [IEEE Transactions on Software Engineering - Demystifying Random Number Vulnerabilities](https://dl.acm.org/doi/10.1109/TSE.2023.3271417)
-- [Exploiting Predictable Randomness in Ethereum Smart Contracts](https://www.kayssel.com/post/web3-2-lottery/)
-- [ImmuneBytes - Smart Contract Vulnerabilities](https://immunebytes.com/blog/smart-contract-vulnerabilities/)
-
 ---
 
 ## 📝 **Context Analysis Matrix Explanations**
@@ -213,6 +204,14 @@ require(block.number >= lastActionBlock[msg.sender] + 100); // Block-based coold
 **Block Number Vulnerability Analysis:** The Context Analysis Matrix for `block.number` demonstrates its fundamental unsuitability for randomness generation due to its completely predictable and sequential nature. Direct randomness generation, modulo operations, and lottery selections are consistently vulnerable because `block.number` follows a deterministic sequence that attackers can predict and exploit by timing their transactions precisely. As documented in recent IEEE research on Ethereum smart contract vulnerabilities, attackers can manipulate their entry timing in lottery contracts by calculating when `block.number % userCount` will equal their desired index, effectively predetermining winners. Timing-based special events also remain vulnerable since malicious actors can monitor the blockchain state and execute transactions exactly when beneficial conditions occur, such as when `block.number % 100 == 0` triggers special rewards.
 
 **Block Number Safety in Non-Randomness Contexts:** Conversely, `block.number` achieves safety when used for legitimate timing control and sequential operations that don't rely on unpredictability. Access control timing, duration calculations, and rate limiting mechanisms leverage block numbers for their intended purpose - providing a reliable, monotonically increasing counter for blockchain state progression. These safe patterns work because they don't depend on randomness; instead, they utilize the predictable nature of block progression for legitimate business logic such as auction deadlines, cooldown periods, and launch timing. The DASP Top 10 security framework specifically acknowledges this distinction, noting that while block variables are dangerous for randomness, they remain appropriate for deterministic timing operations where predictability is actually desired rather than problematic.
+
+---
+**References:** 
+- [DASP Top 10 - Bad Randomness](https://dasp.co/)
+- [IEEE Transactions on Software Engineering - Demystifying Random Number Vulnerabilities](https://dl.acm.org/doi/10.1109/TSE.2023.3271417)
+- [Exploiting Predictable Randomness in Ethereum Smart Contracts](https://www.kayssel.com/post/web3-2-lottery/)
+- [ImmuneBytes - Smart Contract Vulnerabilities](https://immunebytes.com/blog/smart-contract-vulnerabilities/)
+
 ### 4. **block.difficulty / block.prevrandao**
 
 **📊 Vulnerability Type:** Primary + Combinatorial
