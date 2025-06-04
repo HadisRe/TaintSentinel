@@ -283,201 +283,19 @@ function verifyEpochTransition(uint epochNumber) external view {
 
 ---
 
-### 5. **msg.sender**
+## Additional Considerations
 
-**📊 Vulnerability Type:** Context-dependent (Primary in randomness context)
+### Rarely Used but Potentially Vulnerable Sources
 
-#### 🔴 **VULNERABLE Patterns:**
-```solidity
-// Vulnerability Type: PRIMARY in randomness context - User controlled
-uint random = uint160(msg.sender) % 100;              // User can choose address
-if (uint160(msg.sender) % 2 == 0) { win(); }         // Attackers can generate addresses
+While the four primary sources above represent the most commonly misused randomness sources in smart contracts, developers should be aware that **any deterministic or user-controlled value** can create vulnerabilities when used for randomness generation.
 
-// Contract-based manipulation using CREATE2
-contract AddressGrinder {
-    function findWinningAddress(bytes32 salt) external {
-        for(uint i = 0; i < 1000; i++) {
-            address predictedAddr = Clones.predictDeterministicAddress(
-                implementation, 
-                salt, 
-                address(this)
-            );
-            if (uint160(predictedAddr) % 2 == 0) {
-                // Deploy contract at this address
-                Clones.cloneDeterministic(implementation, salt);
-                break;
-            }
-            salt = keccak256(abi.encodePacked(salt, i));
-        }
-    }
-}
+**Less Common Sources:**
+- `tx.gasprice` - User-controlled gas price
+- `gasleft()` - Execution-dependent remaining gas
+- `msg.sender` - User-controlled caller address
+- `tx.origin` - Transaction origin address
 
-// False security with hashing
-bytes32 pseudoRandom = keccak256(abi.encodePacked(msg.sender)); // Still user controlled
-```
-
-#### ✅ **SAFE Patterns:**
-```solidity
-// Safe: Access control and state management
-require(msg.sender == owner);                         // Authorization
-require(hasRole[msg.sender][ADMIN_ROLE]);            // Role-based access
-balances[msg.sender] += amount;                       // State updates
-userLastAction[msg.sender] = block.timestamp;        // User tracking
-
-// Safe: Event logging and business logic
-emit Transfer(msg.sender, recipient, amount);         // Event emission
-userVotes[msg.sender] = candidate;                    // Voting systems
-stakes[msg.sender] = msg.value;                       // Staking mechanisms
-```
-
-**⚡ Security Rule:** Safe for access control, dangerous for randomness | **Risk Level:** 🔴 High (in randomness context)
-
-**References:** [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/), [SWC-120](https://swcregistry.io/docs/SWC-120)
-
----
-
-### 6. **tx.origin**
-
-**📊 Vulnerability Type:** Primary (phishing) + Primary (randomness)
-
-#### 🔴 **VULNERABLE Patterns:**
-```solidity
-// Vulnerability Type: PRIMARY - Phishing attacks
-require(tx.origin == owner);                          // Classic phishing vulnerability
-
-// Real attack scenario (DAO-style attack pattern):
-contract MaliciousContract {
-    function innocentFunction() external {
-        // Owner calls this thinking it's safe
-        VulnerableContract(target).withdraw();          // tx.origin still == owner!
-    }
-}
-
-// Vulnerability Type: PRIMARY - User controlled randomness  
-uint random = uint160(tx.origin) % 100;               // User can control origin
-if (uint160(tx.origin) % 10 == 0) { jackpot(); }     // Predictable outcomes
-
-// Historical exploit pattern: Access control bypass
-function transferOwnership(address newOwner) external {
-    require(tx.origin == currentOwner);               // Phishing vulnerability
-    currentOwner = newOwner;
-}
-```
-
-#### ✅ **SAFE Patterns:**
-```solidity
-// Safe: EOA detection ONLY (very limited safe usage)
-require(tx.origin == msg.sender);                     // Ensure direct EOA interaction
-
-// This is the ONLY safe pattern for tx.origin
-function onlyEOA() external {
-    require(tx.origin == msg.sender, "Contracts not allowed");
-    // Function logic here
-}
-```
-
-**⚡ Security Rule:** 95% of usage contexts are vulnerable | **Risk Level:** 🔴 Critical
-
-**References:** [SWC-115 (Authorization through tx.origin)](https://swcregistry.io/docs/SWC-115), [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
-
----
-
-### 7. **tx.gasprice**
-
-**📊 Vulnerability Type:** Primary + Combinatorial
-
-#### 🔴 **VULNERABLE Patterns:**
-```solidity
-// Vulnerability Type: PRIMARY - User controlled
-uint random = tx.gasprice % 100;                      // User sets gas price
-if (tx.gasprice % 2 == 0) { bonusReward(); }         // Trivial manipulation
-
-// Economic manipulation with EIP-1559
-function gasBasedLottery() external {
-    require(tx.gasprice > 20 gwei);                   // Still manipulable
-    if (tx.gasprice % 1000 == 777) {                 // User can set exact price
-        payable(msg.sender).transfer(1 ether);
-    }
-}
-
-// False security: Range limiting doesn't help
-function limitedGasRandom() external {
-    require(tx.gasprice >= 10 gwei && tx.gasprice <= 50 gwei);
-    uint random = tx.gasprice % 10;                   // Still user controlled within range
-}
-```
-
-#### ✅ **SAFE Patterns:**
-```solidity
-// Safe: Gas limit validation (non-financial contexts)
-require(tx.gasprice <= maxGasPrice, "Gas price too high"); // DoS protection
-require(tx.gasprice >= minGasPrice, "Gas price too low");  // Network congestion protection
-
-// Safe: Gas-based access control (very limited scenarios)
-modifier reasonableGas() {
-    require(tx.gasprice <= 100 gwei, "Excessive gas price");
-    _;
-}
-```
-
-**⚡ Security Rule:** Limited safe usage, most contexts dangerous | **Risk Level:** 🔴 High
-
-**References:** [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559), *"Empirical Analysis of EIP-1559"* (IMC 2021)
-
----
-
-### 8. **gasleft()**
-
-**📊 Vulnerability Type:** Primary + Combinatorial
-
-#### 🔴 **VULNERABLE Patterns:**
-```solidity
-// Vulnerability Type: PRIMARY - User/execution controlled
-uint random = gasleft() % 100;                        // Caller can manipulate gas limit
-if (gasleft() % 10 == 5) { specialBonus(); }         // Gas limit manipulation
-
-// Execution order manipulation
-function gasBasedLogic() external {
-    expensiveOperation();                             // Consumes predictable gas
-    if (gasleft() % 100 == 0) {                      // Predictable remaining gas
-        bonusAction();
-    }
-}
-
-// State-dependent manipulation
-function stateBasedGas() external {
-    if (someCondition) {
-        expensiveCalculation();                       // Different gas consumption paths
-    }
-    uint random = gasleft() % 50;                     // Dependent on execution path
-}
-```
-
-#### ✅ **SAFE Patterns:**
-```solidity
-// Safe: Gas management and protection
-require(gasleft() > 5000, "Insufficient gas");       // Prevent out-of-gas
-if (gasleft() < 2300) {                              // Safe transfer gas limit
-    revert("Not enough gas for safe transfer");
-}
-
-// Safe: Resource management
-function gasEfficientLoop() external {
-    for(uint i = 0; i < items.length && gasleft() > 100000; i++) {
-        processItem(items[i]);                        // Prevent transaction timeout
-    }
-}
-
-// Safe: Emergency stops
-modifier sufficientGas(uint minGas) {
-    require(gasleft() >= minGas, "Insufficient gas");
-    _;
-}
-```
-
-**⚡ Security Rule:** Safe only for gas management, never for randomness | **Risk Level:** 🔴 High (for randomness)
-
-**References:** [Ethereum Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf), [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
+Although these sources are **rarely documented** in security literature as randomness sources, they remain **theoretically exploitable** if used for random number generation due to their predictable or user-controllable nature.
 
 ---
 
@@ -502,15 +320,7 @@ bytes32 seed2 = keccak256(abi.encodePacked(
     block.timestamp     // Miner controlled
 ));
 
-// Pattern 3: Complex false security - STILL VULNERABLE
-bytes32 seed3 = keccak256(abi.encodePacked(
-    blockhash(block.number - 1),  // Recent = manipulable
-    gasleft(),                    // Execution controlled
-    tx.origin,                    // User controlled
-    block.difficulty              // Miner/validator controlled
-));
-
-// Pattern 4: Private variable illusion - BLOCKCHAIN IS PUBLIC
+// Pattern 3: Private variable illusion - BLOCKCHAIN IS PUBLIC
 contract FalseEntropy {
     uint256 private secretSeed = 12345;  // Not actually secret on blockchain
     
@@ -526,53 +336,37 @@ contract FalseEntropy {
 
 **⚡ Universal Rule:** Combining weak sources NEVER creates strong randomness
 
-**References:** [SWC-120](https://swcregistry.io/docs/SWC-120), *"SoK: Unraveling Bitcoin Smart Contracts"* (IEEE S&P 2018)
-
 ---
 
 ## 🧮 Hash Functions in Randomness Context
 
-### **Hash Function Security Analysis**
+### **Common Cryptographic Functions:**
+- `keccak256()` - Most common hash function in Solidity
+- `sha256()` - SHA-2 hash function
+- `ripemd160()` - RIPEMD hash function
 
-#### 🔴 **keccak256() - Combinatorially Vulnerable**
+### **🔴 Security Analysis**
+
 ```solidity
-// Hash function itself is secure, but weak inputs make it vulnerable
-bytes32 result = keccak256(abi.encodePacked(
-    block.timestamp,      // ← These inputs are the problem
-    msg.sender           // ← Not the keccak256 function itself
-));
+// ❌ Weak inputs = weak output (regardless of hash function)
+bytes32 bad1 = keccak256(abi.encodePacked(block.timestamp, msg.sender));
+bytes32 bad2 = sha256(abi.encodePacked(block.timestamp, msg.sender));
+bytes32 bad3 = ripemd160(abi.encodePacked(block.timestamp, msg.sender));
 
-// ✅ Safe usage: With external entropy
+// ✅ Secure inputs = secure output
 bytes32 safe = keccak256(abi.encodePacked(
     oracleRandomness,    // External secure source (Chainlink VRF)
-    userCommitment,      // Proper commit-reveal scheme
-    blockHashAfterCommit // Properly delayed blockhash
+    userCommitment       // Proper commit-reveal scheme
 ));
 ```
 
-#### 🔴 **sha256() - Same Principles Apply**
-```solidity
-// False security: Changing hash function doesn't solve the problem
-bytes32 stillBad = sha256(abi.encodePacked(
-    block.timestamp,     // Still weak input
-    block.number        // Still predictable input
-));
-```
+**⚡ Key Principle:** Hash functions are cryptographically secure; the vulnerability lies in predictable inputs. Using `keccak256(weak_input)` doesn't make the weak input secure.
 
-#### 🔴 **ripemd160() - Same Vulnerability Pattern**
-```solidity
-// Any hash function with weak inputs = weak output
-bytes20 alsoWeak = ripemd160(abi.encodePacked(
-    tx.gasprice,        // User controlled input
-    gasleft()          // Execution controlled input
-));
-```
+**References:**
+- [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
+- [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
+- [NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
 
-**⚡ Key Principle:** Hash functions are cryptographically secure; the vulnerability lies in predictable inputs
-
-**References:** [Cryptographic Hash Functions](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf), [Keccak Specification](https://keccak.team/keccak.html)
-
----
 
 ## 📊 Comprehensive Vulnerability Matrix
 
@@ -593,53 +387,7 @@ bytes20 alsoWeak = ripemd160(abi.encodePacked(
 
 ---
 
-## 🎯 Detection Guidelines for TaintSentinel
 
-### **Priority-Based Pattern Recognition:**
-
-**Tier 1 - Critical Vulnerabilities:**
-```regex
-// Immediate detection patterns
-tx\.origin\s*==\s*(?!msg\.sender)    // tx.origin != msg.sender
-uint160\(msg\.sender\)               // Address casting for randomness
-\.timestamp\s*%                      // Modulo on timestamp
-\.prevrandao\s*%                     // Modulo on prevrandao
-```
-
-**Tier 2 - High Priority Vulnerabilities:**
-```regex
-// Secondary detection patterns  
-blockhash\((?!.*commit)              // blockhash without commit-reveal
-block\.number\s*%                    // Modulo on block number
-gasleft\(\)\s*%                      // Modulo on gas
-keccak256.*block\.                   // Hash with block properties
-```
-
-**Tier 3 - Context Analysis Required:**
-```solidity
-// Function context analysis needed
-function.*random.*\(                 // Function names suggesting randomness
-function.*lottery.*\(                // High-risk function types
-function.*distribute.*\(             // Potential randomness usage
-```
-
-### **Safe vs Vulnerable Context Detection:**
-
-```yaml
-Safe_Contexts:
-  - Access_Control: "require(msg.sender == owner)"
-  - Time_Gates: "require(block.timestamp >= deadline)"  
-  - Gas_Management: "require(gasleft() > threshold)"
-  - EOA_Detection: "require(tx.origin == msg.sender)"
-
-Vulnerable_Contexts:
-  - Modulo_Operations: "% [0-9]+"
-  - Direct_Casting: "uint(block.*)"
-  - Random_Function_Names: ["random", "lottery", "dice", "shuffle", "draw"]
-  - Financial_Impact: "transfer|send|call.value" nearby
-```
-
----
 
 ## 📈 Historical Cases 
 ### **Notable Historical Exploits:**
@@ -684,28 +432,17 @@ Vulnerable_Contexts:
 
 ---
 
-## 🔧 Implementation Recommendations
 
-### **For TaintSentinel Integration:**
+**References:**
+- [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
+- [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
+- [NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
 
-#### **Static Analysis Priorities:**
-1. **AST Pattern Matching:** Identify modulo operations on block properties
-2. **Control Flow Analysis:** Detect randomness usage in financial functions  
-3. **Data Flow Tracking:** Follow weak randomness propagation through variables
-4. **Context Classification:** Distinguish between safe and unsafe usage patterns
+**References:**
+- [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
+- [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
 
-#### **Dynamic Analysis Considerations:**
-1. **Transaction Simulation:** Test predictability of randomness sources
-2. **Gas Analysis:** Identify `gasleft()` manipulation vectors
-3. **Block Analysis:** Monitor `block.timestamp` manipulation windows
 
-### **Reporting and Classification:**
-- **Critical:** `tx.origin` in access control, direct randomness from any source
-- **High:** Combined weak sources, insufficient commit-reveal schemes  
-- **Medium:** Context-dependent usage requiring manual review
-- **Info:** Safe usage patterns for educational purposes
-
----
 ## References
 - **[ConsenSys Smart Contract Best Practices - Randomness](https://consensys.github.io/smart-contract-best-practices/attacks/randomness/)**
 - **[OWASP Smart Contract Top 10 - Insufficient Entropy](https://owasp.org/www-project-smart-contract-top-10/)**
