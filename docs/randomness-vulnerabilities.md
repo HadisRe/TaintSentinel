@@ -371,60 +371,43 @@ bytes32 safe = keccak256(abi.encodePacked(
 
 
 
-## 📈 Historical Cases 
+## Historical Cases
+
 ### **Notable Historical Exploits:**
 
 #### **SmartBillions (2018)**
-- **Loss:** 400+ ETH
-- **Vulnerability:** `block.timestamp % 1000` 
-- **Reference:** [Detailed Analysis](https://www.reddit.com/r/ethereum/comments/74d3dc/smartbillions_lottery_contract_hacked_how/)
+- **Loss:** 400+ ETH (~$120,000)
+- **Vulnerability:** Weak randomness in lottery contract
+- **Reference:** [Security Boulevard Analysis](https://securityboulevard.com/2018/01/predicting-random-numbers-in-ethereum-smart-contracts/)
 
 #### **FOMO3D Style Games (2018-2019)**
 - **Loss:** Multiple incidents
-- **Vulnerability:** `block.number` prediction
-- **Reference:** [Security Analysis](https://arxiv.org/abs/1902.05749)
+- **Vulnerability:** `block.number` prediction and block stuffing
+- **Reference:** [Academic Security Analysis](https://arxiv.org/abs/1902.05749)
 
-#### **DAO-Style Attacks (2016-present)**
-- **Loss:** $70M+ in original DAO
-- **Vulnerability:** `tx.origin` phishing patterns
-- **Reference:** [The DAO Attack Analysis](https://hackingdistributed.com/2016/06/18/analysis-of-the-dao-exploit/)
+---
 
-### **Industry Standards and Guidelines:**
+## Industry Standards and Guidelines
 
-#### **Ethereum Improvement Proposals:**
+### **Ethereum Improvement Proposals:**
 - **[EIP-4399](https://eips.ethereum.org/EIPS/eip-4399):** PREVRANDAO opcode specification
-- **[EIP-1559](https://eips.ethereum.org/EIPS/eip-1559):** Fee market change and tx.gasprice implications
 
-#### **Security Standards:**
+### **Security Standards:**
 - **[SWC Registry](https://swcregistry.io/):** Smart Contract Weakness Classification
 - **[OWASP Smart Contract Top 10](https://owasp.org/www-project-smart-contract-top-10/):** Security risks
 - **[ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/):** Industry guidelines
 
-### **Academic Research Foundation:**
-
-#### **Peer-Reviewed Publications:**
-- *"SoK: Unraveling Bitcoin Smart Contracts"* (IEEE S&P 2018)
-- *"Smart Contract Security: a Practitioners' Perspective"* (ICSE 2020)  
-- *"Empirical Analysis of EIP-1559: Transaction Fees, Waiting Time, and Consensus Security"* (IMC 2021)
-- *"Ethereum Smart Contract Security Research: Survey and Future Research Opportunities"* (Frontiers 2021)
-
-#### **Technical Specifications:**
+### **Technical Specifications:**
 - **[Ethereum Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf):** Protocol specification
-- **[Keccak Team Specification](https://keccak.team/keccak.html):** Hash function details
+- **[NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf):** Cryptographic hash standards
 
 ---
 
+## References
 
-**References:**
 - [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
-- [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
-- [NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
-
-**References:**
-- [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
-- [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
-
-
+- [ConsenSys Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/)
+- [EIP-4399: PREVRANDAO](https://eips.ethereum.org/EIPS/eip-4399)
 ## References
 - **[ConsenSys Smart Contract Best Practices - Randomness](https://consensys.github.io/smart-contract-best-practices/attacks/randomness/)**
 - **[OWASP Smart Contract Top 10 - Insufficient Entropy](https://owasp.org/www-project-smart-contract-top-10/)**
