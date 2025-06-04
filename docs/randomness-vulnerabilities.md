@@ -368,24 +368,6 @@ bytes32 safe = keccak256(abi.encodePacked(
 - [NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
 
 
-## 📊 Comprehensive Vulnerability Matrix
-
-| Source | Vulnerability Type | Safe Context | Vulnerable Context | Risk Level | Reference |
-|--------|-------------------|--------------|-------------------|------------|-----------|
-| `block.timestamp` | Primary + Combinatorial | Time gates (>15s) | Randomness, modulo | 🔴 High | [SWC-120](https://swcregistry.io/docs/SWC-120) |
-| `blockhash()` | Primary | Commit-reveal proper | Direct usage | 🔴 High | [ConsenSys](https://consensys.github.io/smart-contract-best-practices/) |
-| `block.number` | Primary + Combinatorial | Timing control | Randomness | 🔴 High | [SWC-120](https://swcregistry.io/docs/SWC-120) |
-| `block.prevrandao` | Primary + Combinatorial | None* | All randomness | 🔴 Critical | [EIP-4399](https://eips.ethereum.org/EIPS/eip-4399) |
-| `msg.sender` | Combinatorial | Access control | Randomness | 🔴 High** | [ConsenSys](https://consensys.github.io/smart-contract-best-practices/) |
-| `tx.origin` | Primary | EOA detection only | Access control, randomness | 🔴 Critical | [SWC-115](https://swcregistry.io/docs/SWC-115) |
-| `tx.gasprice` | Primary + Combinatorial | Gas validation | Randomness | 🔴 High | [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559) |
-| `gasleft()` | Primary + Combinatorial | Gas management | Randomness | 🔴 High | [Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf) |
-
-**Notes:**
-- *: Only non-financial, non-critical applications
-- **: High risk specifically in randomness context
-
----
 
 
 
