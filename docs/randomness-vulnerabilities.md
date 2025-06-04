@@ -51,6 +51,8 @@ if (block.timestamp >= deployTime + 365 days) {       // Annual operations
 ```
 
 ####  **Context Analysis Matrix:**
+The Context Analysis Matrix for block.timestamp reveals critical distinctions between safe and vulnerable usage patterns. Time-based access control and event timestamping are classified as safe because they typically involve longer time margins (hours, days, or weeks) where the miner's ±15 second manipulation window becomes negligible relative to the intended time spans. Long-term comparisons remain secure since applications using annual or monthly timeframes can tolerate minor timestamp variations without compromising functionality. However, randomness generation, modulo operations, and direct casting to uint are consistently vulnerable because miners can deliberately manipulate block timestamps within a 15-second window to influence outcomes, making these patterns predictable and exploitable for financial gain. The key security principle is that block.timestamp becomes safe only when the application's time tolerance significantly exceeds the miner's manipulation capabilities.
+
 
 | Usage Context | Safe | Vulnerable | Notes |
 |---------------|------|------------|-------|
@@ -133,7 +135,8 @@ function getRandomness() external view returns (uint256) {
 }
 ```
 
-#### 📊 **Context Analysis Matrix:**
+####  **Context Analysis Matrix:**
+The blockhash() function presents a more complex vulnerability landscape due to Ethereum's 256-block limitation and the deterministic nature of block mining. Direct randomness generation and recent blocks (1-10) are vulnerable because miners retain influence over recently mined blocks and can coordinate to manipulate outcomes, especially when the economic incentive exceeds block rewards. Current block hash and blocks beyond the 256-limit are predictably vulnerable since they always return zero - the former because the hash hasn't been computed yet, and the latter due to EVM's storage limitations. However, properly implemented commit-reveal schemes and future block commitments achieve safety by creating a separation of knowledge: users cannot predict future block hashes when committing, while miners cannot know user secrets when mining blocks. The critical insight is that blockhash() requires sophisticated protocols with minimum delays and validation checks to transform an inherently manipulable data source into a cryptographically secure randomness foundation.
 
 | Usage Context | Safe | Vulnerable | Notes |
 |---------------|------|------------|-------|
@@ -146,7 +149,6 @@ function getRandomness() external view returns (uint256) {
 | Historical verification | ✅ | ❌ | Non-randomness use cases only |
 | Combination with user input | ❌ | ✅ | Still manipulable |
 
-**⚡ Security Rule:** Safe only with proper commit-reveal scheme including minimum delays and 256-block range validation
 
 **References:** 
 - [Ethereum Stack Exchange - 256 Block Limitation](https://ethereum.stackexchange.com/questions/418/why-are-contracts-limited-to-only-the-previous-256-block-hashes)
@@ -156,7 +158,6 @@ function getRandomness() external view returns (uint256) {
 
 ### 3. **block.number**
 
-**📊 Vulnerability Type:** Primary + Combinatorial
 
 #### 🔴 **VULNERABLE Patterns:**
 ```solidity
