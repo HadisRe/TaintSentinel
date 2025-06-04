@@ -155,9 +155,6 @@ The blockhash() function presents a more complex vulnerability landscape due to 
 - [Gitcoin Blog - Commit Reveal Scheme on Ethereum](https://www.gitcoin.co/blog/commit-reveal-scheme-on-ethereum)
 ---
 ### 3. **block.number**
-
-**📊 Vulnerability Type:** Primary + Combinatorial
-
 #### 🔴 **VULNERABLE Patterns:**
 ```solidity
 // Vulnerability Type: PRIMARY - Completely predictable
@@ -184,7 +181,7 @@ if (block.number >= endBlock) { closeAuction(); }    // Deadline enforcement
 require(block.number >= lastActionBlock[msg.sender] + 100); // Block-based cooldown
 ```
 
-#### 📊 **Context Analysis Matrix:**
+####  **Context Analysis Matrix:**
 
 | Usage Context | Safe | Vulnerable | Notes |
 |---------------|------|------------|-------|
@@ -214,8 +211,6 @@ require(block.number >= lastActionBlock[msg.sender] + 100); // Block-based coold
 
 ### 4. **block.difficulty / block.prevrandao**
 
-**📊 Vulnerability Type:** Primary + Combinatorial
-
 #### 🔴 **VULNERABLE Patterns:**
 ```solidity
 // Pre-merge vulnerability (Proof of Work)
@@ -229,24 +224,62 @@ bytes32 seed = keccak256(abi.encodePacked(block.prevrandao)); // Hash doesn't he
 function postMergeRandom() external view returns (uint) {
     return block.prevrandao % 1000;                   // Still manipulable by validators
 }
-```
 
-#### ✅ **SAFE Patterns:**
-```solidity
-// Generally NO safe patterns for randomness
-// Only acceptable for non-critical applications with full risk understanding
-
-// Extremely limited safe usage (non-financial only):
-function nonCriticalFeature() external {
-    if (block.prevrandao % 1000 == 0) {               // Cosmetic features only
-        enableRainbowTheme();                         // No financial impact
+// Last revealer attack pattern
+function gambling() external payable {
+    if (block.prevrandao % 2 == 0) {                  // Proposer can withhold block
+        payable(msg.sender).transfer(address(this).balance);
     }
 }
 ```
 
-**⚡ Security Rule:** No safe patterns for randomness exist | **Risk Level:** 🔴 Critical
+#### ✅ **SAFE Patterns:**
+```solidity
+// Generally NO safe patterns for randomness exist
+// EIP-4399 explicitly states: not suitable for secure randomness
 
-**References:** [EIP-4399 (PREVRANDAO)](https://eips.ethereum.org/EIPS/eip-4399), [Ethereum Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf)
+// Very limited non-financial usage (with full risk understanding):
+function nonCriticalCosmetic() external {
+    if (block.prevrandao % 1000 == 0) {               // Cosmetic features only
+        enableRainbowTheme();                         // No financial impact
+    }
+}
+
+// Historical verification (non-randomness purpose):
+function verifyEpochTransition(uint epochNumber) external view {
+    require(block.prevrandao != 0, "Invalid RANDAO value"); // Data validation only
+}
+```
+
+####  **Context Analysis Matrix:**
+
+| Usage Context | Safe | Vulnerable | Notes |
+|---------------|------|------------|-------|
+| Direct randomness generation | ❌ | ✅ | Last revealer attack possible |
+| Modulo operations | ❌ | ✅ | Proposer can withhold blocks |
+| Financial applications | ❌ | ✅ | Economic incentive for manipulation |
+| Gaming/gambling logic | ❌ | ✅ | 1-bit influence per proposer |
+| Block withholding scenarios | ❌ | ✅ | Proposers can censor transactions |
+| Consecutive slot control | ❌ | ✅ | Multiple validators coordination |
+| Future RANDAO commitment | ⚠️ | ⚠️ | Requires 4+ epoch lookahead |
+| Historical verification | ✅ | ❌ | Non-randomness data validation |
+| Non-financial cosmetics | ✅ | ❌ | No economic manipulation incentive |
+
+
+---
+
+## 📝 **Context Analysis Matrix Explanations**
+
+**Block Difficulty/PREVRANDAO Pre-Merge vs Post-Merge Analysis:** The transition from `block.difficulty` to `block.prevrandao` via EIP-4399 fundamentally changed the underlying mechanism but did not resolve the core randomness vulnerability. Pre-merge, `block.difficulty` was manipulable by miners who could influence difficulty adjustments and timing attacks. Post-merge, `block.prevrandao` represents the beacon chain's RANDAO value, which, while more sophisticated than PoW difficulty, remains vulnerable to validator manipulation through the "last revealer attack" as documented in recent research. According to the official EIP-4399 specification, each block proposer maintains "1 bit of influence power per slot," allowing validators to either propose a block with their RANDAO contribution or withhold it entirely, creating predictable bias in subsequent randomness outputs. This manipulation capability persists regardless of whether the value is used directly or processed through hash functions.
+
+**RANDAO Manipulation Techniques and Their Impact:** Current research from the Ethereum community and recent cryptographic analyses reveal multiple attack vectors against RANDAO-based randomness. The most significant is block withholding, where proposers can deliberately skip their assigned slots to influence future RANDAO mixes, with the limitation that their influence lasts only until the next honest proposal. More concerning for smart contract applications is transaction censoring, where proposers can delay specific transactions to force them into blocks with known RANDAO values, as highlighted in Zellic's security research. Additionally, when validators control consecutive slots (which occurs naturally in the protocol), they can explore multiple possible outcomes before committing to a strategy. The Ethereum Foundation's own documentation acknowledges these limitations, explicitly stating that RANDAO is designed for consensus-layer security rather than application-layer randomness, making external oracles like Chainlink VRF necessary for secure on-chain randomness in financial applications.
+ 
+**References:** 
+- [EIP-4399: Supplant DIFFICULTY opcode with PREVRANDAO](https://eips.ethereum.org/EIPS/eip-4399)
+- [Ethereum.org - Block Proposal](https://ethereum.org/en/developers/docs/consensus-mechanisms/pos/block-proposal/)
+- [ETH2 Book - Randomness](https://eth2book.info/latest/part2/building_blocks/randomness/)
+- [Zellic Research - ETH 2 Proof-of-Stake Developer Guide](https://www.zellic.io/blog/eth2-proof-of-stake-developer-guide/)
+- [Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon (2025)](https://eprint.iacr.org/2025/037)
 
 ---
 
