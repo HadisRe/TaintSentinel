@@ -1,12 +1,22 @@
-# 🎲 Smart Contract Randomness Vulnerabilities
+# 🎲 Bad Randomness in Smart Contracts
 
-This document provides a comprehensive overview of randomness-related vulnerabilities in smart contracts, focusing on patterns detectable through path-level analysis.
+## 🔍 What is it?
+Bad randomness occurs when smart contracts use predictable sources to generate random values.
 
-## 📋 Table of Contents
+## ⚠️ Problematic Sources:
 
-1. [Overview](#overview)
-2. [Vulnerability Categories](#vulnerability-categories)
-3. [Detection Patterns](#detection-patterns)
-4. [Code Examples](#code-examples)
-5. [Path-Level Analysis](#path-level-analysis)
-6. [References](#references)
+### 1. block.timestamp
+❌ **Problem:** Miners can partially control it
+
+### 2. block.number  
+❌ **Problem:** Completely predictable
+
+### 3. blockhash()
+❌ **Problem:** Manipulable for recent blocks
+
+## 💡 Vulnerable Example:
+```solidity
+function lottery() public {
+    uint256 random = block.timestamp % 100;  // ❌ BAD!
+    // winner selection...
+}
