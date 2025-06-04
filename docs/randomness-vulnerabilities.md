@@ -84,6 +84,12 @@ function badRandom() external {
     require(hash != 0);                               // Doesn't fix core issue
     return uint(hash) % 100;
 }
+
+// 256-block limitation exploit
+function exploitOldBlock() external {
+    bytes32 hash = blockhash(block.number - 300);     // Returns 0 (beyond 256 blocks)
+    uint predictable = uint(keccak256(abi.encodePacked(hash))); // Always same result
+}
 ```
 
 #### ✅ **SAFE Patterns:**
@@ -109,13 +115,44 @@ function reveal(uint nonce) external {
     
     uint result = uint(keccak256(abi.encodePacked(hash, nonce))) % 100;
 }
+
+// Safe: Future block commitment with proper validation
+mapping(address => uint256) public revealBlock;
+
+function commitBlock(uint256 _futureBlock) external {
+    require(revealBlock[msg.sender] == 0, "Can only commit 1 time per address");
+    require(_futureBlock > block.number + 10, "Must commit to future block at least 10 blocks");
+    revealBlock[msg.sender] = _futureBlock;
+}
+
+function getRandomness() external view returns (uint256) {
+    uint256 selectedBlock = revealBlock[msg.sender];
+    require(block.number > selectedBlock, "Not reach the target block yet");
+    require(block.number <= selectedBlock + 256, "Commit expired");
+    return blockhash(selectedBlock);
+}
 ```
 
-**⚡ Security Rule:** Only safe with proper commit-reveal scheme | **Risk Level:** 🔴 High
+#### 📊 **Context Analysis Matrix:**
 
-**References:** [Ethereum Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf), [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/attacks/randomness/)
+| Usage Context | Safe | Vulnerable | Notes |
+|---------------|------|------------|-------|
+| Direct randomness generation | ❌ | ✅ | Always manipulable by miners |
+| Current block hash | ❌ | ✅ | Always returns 0 |
+| Recent blocks (1-10) | ❌ | ✅ | Miner manipulation possible |
+| Blocks beyond 256 limit | ❌ | ✅ | Always returns 0 - predictable |
+| Commit-reveal scheme | ✅ | ❌ | Safe with proper implementation |
+| Future block commitment | ✅ | ❌ | Safe with minimum delay + validation |
+| Historical verification | ✅ | ❌ | Non-randomness use cases only |
+| Combination with user input | ❌ | ✅ | Still manipulable |
 
----
+**⚡ Security Rule:** Safe only with proper commit-reveal scheme including minimum delays and 256-block range validation
+
+**References:** 
+- [Ethereum Stack Exchange - 256 Block Limitation](https://ethereum.stackexchange.com/questions/418/why-are-contracts-limited-to-only-the-previous-256-block-hashes)
+- [Smart Contract Security Testing Guide - Randomness](https://docs.inspex.co/smart-contract-security-testing-guide/testing-categories/7-testing-randomness)
+- [SlowMist - Common Vulnerabilities in Solidity: Randomness](https://www.slowmist.com/articles/solidity-security/Common-Vulnerabilities-in-Solidity-Randomness.html)
+- [Gitcoin Blog - Commit Reveal Scheme on Ethereum](https://www.gitcoin.co/blog/commit-reveal-scheme-on-ethereum)
 
 ### 3. **block.number**
 
