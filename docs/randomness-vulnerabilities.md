@@ -17,6 +17,9 @@ To address bad randomness vulnerabilities, developers should avoid blockchain-in
 
 ##   Vulnerable Example:
  
+This lottery contract is vulnerable because it generates randomness using `block.timestamp`, which miners can alter within a 15-second window to affect results. Attackers can determine advantageous transaction timing and take advantage of the 10% winning probability thanks to the deterministic keccak256 hashing and predictable seed updates.
+
+
 ```Solidity
 contract VulnerableLottery {
     uint256 private seed;
