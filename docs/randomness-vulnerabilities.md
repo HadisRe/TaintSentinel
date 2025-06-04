@@ -23,9 +23,22 @@ contract VulnerableLottery {
  
 ## Primary Bad Randomness Sources
 
+## 📋 Analysis Approach
+
+This analysis examines bad randomness sources in two categories:
+
+1. **Primary Bad Randomness Sources:** Sources that are inherently vulnerable when used directly for randomness generation
+2. **Combinatorial Vulnerabilities:** How these primary sources, when combined together, create compounded vulnerabilities
+
+We evaluate each source across different usage contexts to distinguish between safe and vulnerable patterns.
+
+---
+
+## 🎯 Primary Bad Randomness Sources
+
 ### 1. **block.timestamp**
 
-**Vulnerability Type:** Primary + Combinatorial
+**📊 Vulnerability Type:** Primary + Combinatorial
 
 #### 🔴 **VULNERABLE Patterns:**
 ```solidity
@@ -57,10 +70,22 @@ if (block.timestamp >= deployTime + 365 days) {       // Annual operations
 }
 ```
 
-**⚡ Security Rule:** Safe if time margin > 15 seconds | **Risk Level:** 🔴 High
+#### 📊 **Context Analysis Matrix:**
 
-**References:** [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/attacks/randomness/), [SWC-120](https://swcregistry.io/docs/SWC-120)
+| Usage Context | Safe | Vulnerable | Notes |
+|---------------|------|------------|-------|
+| Time-based access control | ✅ | ❌ | Safe with >15s margin |
+| Event timestamping | ✅ | ❌ | No manipulation incentive |
+| Randomness generation | ❌ | ✅ | Always vulnerable |
+| Modulo operations | ❌ | ✅ | Predictable patterns |
+| Direct casting to uint | ❌ | ✅ | Miner manipulation |
+| Long-term comparisons | ✅ | ❌ | Hours/days tolerance |
 
+**⚡ Security Rule:** Safe if time margin > 15 seconds and not used for randomness
+
+**References:** 
+- [ConsenSys Best Practices - Timestamp Dependence](https://consensys.github.io/smart-contract-best-practices/development-recommendations/solidity-specific/timestamp-dependence/)
+- [Smart Contract Vulnerabilities - Timestamp Dependence](https://github.com/KadenZipfel/smart-contract-attack-vectors/blob/master/vulnerabilities/timestamp-dependence.md)
 ---
 
 ### 2. **blockhash()**
