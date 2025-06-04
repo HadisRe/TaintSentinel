@@ -21,8 +21,6 @@ contract VulnerableLottery {
 ```
 # Comprehensive Analysis of Bad Randomness Sources in Smart Contracts
  
-## Primary Bad Randomness Sources
-
 ## 📋 Analysis Approach
 
 This analysis examines bad randomness sources in two categories:
@@ -34,11 +32,9 @@ We evaluate each source across different usage contexts to distinguish between s
 
 ---
 
-## 🎯 Primary Bad Randomness Sources
+## Primary Bad Randomness Sources
 
 ### 1. **block.timestamp**
-
-**📊 Vulnerability Type:** Primary + Combinatorial
 
 #### 🔴 **VULNERABLE Patterns:**
 ```solidity
@@ -70,7 +66,7 @@ if (block.timestamp >= deployTime + 365 days) {       // Annual operations
 }
 ```
 
-#### 📊 **Context Analysis Matrix:**
+####  **Context Analysis Matrix:**
 
 | Usage Context | Safe | Vulnerable | Notes |
 |---------------|------|------------|-------|
@@ -81,7 +77,6 @@ if (block.timestamp >= deployTime + 365 days) {       // Annual operations
 | Direct casting to uint | ❌ | ✅ | Miner manipulation |
 | Long-term comparisons | ✅ | ❌ | Hours/days tolerance |
 
-**⚡ Security Rule:** Safe if time margin > 15 seconds and not used for randomness
 
 **References:** 
 - [ConsenSys Best Practices - Timestamp Dependence](https://consensys.github.io/smart-contract-best-practices/development-recommendations/solidity-specific/timestamp-dependence/)
