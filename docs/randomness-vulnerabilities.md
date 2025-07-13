@@ -5,7 +5,7 @@ To address bad randomness vulnerabilities, developers should avoid blockchain-in
 
 # Comprehensive Analysis of Bad Randomness Sources in Smart Contracts
  
-## 📋 Analysis Approach
+## Analysis Approach
 
 This analysis examines bad randomness sources in two categories:
 
@@ -20,7 +20,7 @@ We evaluate each source across different usage contexts to distinguish between s
 
 ### 1. **block.timestamp**
 
-#### 🔴 **VULNERABLE Patterns:**
+ 
 ```solidity
 // Vulnerability Type: PRIMARY - Direct manipulation by miners (±15 second window)
 uint random = block.timestamp % 10;                    // Miner manipulation possible
@@ -36,7 +36,7 @@ function play() external {
 }
 ```
 
-#### ✅ **SAFE Patterns:**
+####  **SAFE Patterns:**
 ```solidity
 // Safe: Time gates with sufficient margin (>15 seconds)
 require(block.timestamp >= saleEndTime);               // Time-based access control
@@ -71,7 +71,7 @@ The Context Analysis Matrix for block.timestamp reveals critical distinctions be
 
 ### 2. **blockhash()**
 
-#### 🔴 **VULNERABLE Patterns:**
+ 
 ```solidity
 // Vulnerability Type: PRIMARY - Miner manipulation + limited 256-block history
 bytes32 hash = blockhash(block.number - 1);           // Recent blocks = miner control
@@ -92,8 +92,7 @@ function exploitOldBlock() external {
 }
 ```
 
-#### ✅ **SAFE Patterns:**
-```solidity
+ ```solidity
 // Safe: Proper commit-reveal with safeguards
 mapping(address => bytes32) public commitments;
 mapping(address => uint) public commitBlocks;
@@ -155,8 +154,7 @@ The blockhash() function presents a more complex vulnerability landscape due to 
 - [Gitcoin Blog - Commit Reveal Scheme on Ethereum](https://www.gitcoin.co/blog/commit-reveal-scheme-on-ethereum)
 ---
 ### 3. **block.number**
-#### 🔴 **VULNERABLE Patterns:**
-```solidity
+ ```solidity
 // Vulnerability Type: PRIMARY - Completely predictable
 uint random = block.number % 10;                      // 100% predictable
 if (block.number % 100 == 0) { specialEvent(); }     // Timing manipulation possible
@@ -170,8 +168,7 @@ function lottery() external {
 }
 ```
 
-#### ✅ **SAFE Patterns:**
-```solidity
+ ```solidity
 // Safe: Block-based timing and access control
 require(block.number > startBlock);                   // Launch timing
 uint elapsed = block.number - startBlock;             // Duration calculation
@@ -196,7 +193,7 @@ require(block.number >= lastActionBlock[msg.sender] + 100); // Block-based coold
 | Combination with other sources | ❌ | ✅ | Doesn't improve randomness |
 ---
 
-## 📝 **Context Analysis Matrix Explanations**
+## **Context Analysis Matrix Explanations**
 
 **Block Number Vulnerability Analysis:** The Context Analysis Matrix for `block.number` demonstrates its fundamental unsuitability for randomness generation due to its completely predictable and sequential nature. Direct randomness generation, modulo operations, and lottery selections are consistently vulnerable because `block.number` follows a deterministic sequence that attackers can predict and exploit by timing their transactions precisely. As documented in recent IEEE research on Ethereum smart contract vulnerabilities, attackers can manipulate their entry timing in lottery contracts by calculating when `block.number % userCount` will equal their desired index, effectively predetermining winners. Timing-based special events also remain vulnerable since malicious actors can monitor the blockchain state and execute transactions exactly when beneficial conditions occur, such as when `block.number % 100 == 0` triggers special rewards.
 
@@ -211,8 +208,7 @@ require(block.number >= lastActionBlock[msg.sender] + 100); // Block-based coold
 
 ### 4. **block.difficulty / block.prevrandao**
 
-#### 🔴 **VULNERABLE Patterns:**
-```solidity
+ ```solidity
 // Pre-merge vulnerability (Proof of Work)
 uint random = block.difficulty % 100;                 // Miner manipulation
 
@@ -233,8 +229,7 @@ function gambling() external payable {
 }
 ```
 
-#### ✅ **SAFE Patterns:**
-```solidity
+ ```solidity
 // Generally NO safe patterns for randomness exist
 // EIP-4399 explicitly states: not suitable for secure randomness
 
@@ -268,7 +263,7 @@ function verifyEpochTransition(uint epochNumber) external view {
 
 ---
 
-## 📝 **Context Analysis Matrix Explanations**
+## **Context Analysis Matrix Explanations**
 
 **Block Difficulty/PREVRANDAO Pre-Merge vs Post-Merge Analysis:** The transition from `block.difficulty` to `block.prevrandao` via EIP-4399 fundamentally changed the underlying mechanism but did not resolve the core randomness vulnerability. Pre-merge, `block.difficulty` was manipulable by miners who could influence difficulty adjustments and timing attacks. Post-merge, `block.prevrandao` represents the beacon chain's RANDAO value, which, while more sophisticated than PoW difficulty, remains vulnerable to validator manipulation through the "last revealer attack" as documented in recent research. According to the official EIP-4399 specification, each block proposer maintains "1 bit of influence power per slot," allowing validators to either propose a block with their RANDAO contribution or withhold it entirely, creating predictable bias in subsequent randomness outputs. This manipulation capability persists regardless of whether the value is used directly or processed through hash functions.
 
@@ -299,9 +294,9 @@ Although these sources are **rarely documented** in security literature as rando
 
 ---
 
-## 🔄 Weak Source Combinations
+## Weak Source Combinations
 
-### **🔴 CRITICAL FINDING: No Safe Combinations Exist**
+### ** CRITICAL FINDING: No Safe Combinations Exist**
 
 All combinations of weak randomness sources remain vulnerable:
 
@@ -338,14 +333,14 @@ contract FalseEntropy {
 
 ---
 
-## 🧮 Hash Functions in Randomness Context
+## Hash Functions in Randomness Context
 
 ### **Common Cryptographic Functions:**
 - `keccak256()` - Most common hash function in Solidity
 - `sha256()` - SHA-2 hash function
 - `ripemd160()` - RIPEMD hash function
 
-### **🔴 Security Analysis**
+### **Security Analysis**
 
 ```solidity
 // ❌ Weak inputs = weak output (regardless of hash function)
@@ -408,7 +403,7 @@ bytes32 safe = keccak256(abi.encodePacked(
 - [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
 - [ConsenSys Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/)
 - [EIP-4399: PREVRANDAO](https://eips.ethereum.org/EIPS/eip-4399)
-## References
+
 - **[ConsenSys Smart Contract Best Practices - Randomness](https://consensys.github.io/smart-contract-best-practices/attacks/randomness/)**
 - **[OWASP Smart Contract Top 10 - Insufficient Entropy](https://owasp.org/www-project-smart-contract-top-10/)**
 - **[SWC Registry - Weak Sources of Randomness (SWC-120)](https://swcregistry.io/docs/SWC-120)**
