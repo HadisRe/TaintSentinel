@@ -1,4 +1,4 @@
-# TaintSentinel: Path-Level Neural Architecture for Smart Contract Randomness Vulnerability Detection
+# TaintSentinel: Path-Level Randomness Vulnerability Detection for Smart Contracts
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 [![GitHub Stars](https://img.shields.io/github/stars/HadisRe/TaintSentinel?style=social)](https://github.com/HadisRe/TaintSentinel/stargazers)
