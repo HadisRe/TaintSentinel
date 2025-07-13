@@ -44,7 +44,7 @@ cd TaintSentinel
 # Install dependencies
 pip install -r requirements.txt
 
-Dataset
+### Dataset
 The TaintSentinel dataset contains 2,017 smart contracts (148 vulnerable, 1,869 safe). Dataset is included in the repository under dataset/contracts/.
 Running the Preprocessing Pipeline
 Execute the preprocessing steps in order:
@@ -56,11 +56,11 @@ python sink3.py
 python ModularSemanticGraph.py
 python TaintAnalysis.py
 
-Training the Model
+### Training the Model
 cd ../model
 python Sentinel_3.py
 
-Repository Structure
+### Repository Structure
 TaintSentinel/
 ├── dataset/
 │   ├── contracts/
@@ -81,8 +81,8 @@ TaintSentinel/
 ├── requirements.txt
 └── README.md
 
-Technical Details
-Preprocessing Pipeline
+### Technical Details
+### Preprocessing Pipeline
 
 AST Extraction: Parses Solidity code into Abstract Syntax Trees
 Source Detection: Identifies weak entropy sources (block.timestamp, blockhash)
@@ -90,21 +90,21 @@ Sink Detection: Locates critical operations (gambling payouts)
 Graph Construction: Builds control-flow and data-flow graphs
 Taint Analysis: Traces paths from sources to sinks with risk scoring
 
-Model Architecture
+### Model Architecture
 
 GlobalGNN: Processes entire contract structure using Graph Convolutional Networks
 PathGNN: Analyzes individual taint paths with LSTM and attention mechanisms
 Gated Fusion: Adaptively combines global and path-level features
 Risk Classifier: Predicts vulnerability likelihood and path risk levels
 
-Results
+### Results
 Our experiments demonstrate TaintSentinel's effectiveness:
 
 Balanced Dataset: Achieves 87.5% F1-Score with high precision (92.1%)
 Imbalanced Dataset: Maintains 70.7% recall in real-world scenarios
 Path Risk Accuracy: 97% accuracy in classifying path risk levels
 
-Contributing
+### Contributing
 We welcome contributions! Please feel free to submit issues and pull requests.
 License
 This project is licensed under the MIT License - see the LICENSE file for details.
