@@ -23,20 +23,21 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
 | AUC-ROC | 0.951 | 0.940 |
 | PRA | 0.970 | 0.920 |
 
-##  Repository Structure
+## Quick Start
 
-- **dataset/** - Smart contract dataset
-  - contracts/ - Raw Solidity files (vulnerable & safe)
-  - dataset_metadata.json - Complete metadata
-  - contracts_list.json - Contract addresses list
-  
-- **code/** - Implementation
-  - preprocessing/ - CFG extraction & taint analysis
-  - models/ - Neural network implementation
-  - evaluation/ - Evaluation scripts
-  
-- **docs/** - Documentation and paper
-  
-- **results/** - Experimental results
-  - confusion_matrices/
-  - performance_plots/
+### Prerequisites
+- Python 3.8+
+- PyTorch 1.12+
+- PyTorch Geometric
+- NetworkX
+- NumPy, Pandas, Scikit-learn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/HadisRe/TaintSentinel.git
+cd TaintSentinel
+
+# Install dependencies
+pip install -r requirements.txt
