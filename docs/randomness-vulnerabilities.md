@@ -403,7 +403,7 @@ bytes32 safe = keccak256(abi.encodePacked(
 - [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
 - [ConsenSys Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/)
 - [EIP-4399: PREVRANDAO](https://eips.ethereum.org/EIPS/eip-4399)
-## References
+
 - **[ConsenSys Smart Contract Best Practices - Randomness](https://consensys.github.io/smart-contract-best-practices/attacks/randomness/)**
 - **[OWASP Smart Contract Top 10 - Insufficient Entropy](https://owasp.org/www-project-smart-contract-top-10/)**
 - **[SWC Registry - Weak Sources of Randomness (SWC-120)](https://swcregistry.io/docs/SWC-120)**
