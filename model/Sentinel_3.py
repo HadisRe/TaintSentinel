@@ -1,7 +1,4 @@
-"""
-TaintSentinel - Complete Training Pipeline
-فایل کامل برای آموزش و ارزیابی مدل
-"""
+ 
 
 import torch
 import torch.nn as nn
@@ -18,24 +15,19 @@ import warnings
 import numpy as np
 warnings.filterwarnings('ignore')
 
-# ===========================
-# Import Models from Previous Files
-# ===========================
-# توجه: مطمئن شوید که فایل‌های TaintSentinel.py و Sentinel_2.py در همان پوشه هستند
-
+ # Import Models from Previous Files
+  
 try:
     from Sentinel_1 import SmartContractDataset
     from Sentinel_2 import GlobalGNN, PathGNN, custom_collate_fn
-    print("✅ Successfully imported components from previous files")
+    print("  Successfully imported components from previous files")
 except ImportError as e:
-    print(f"❌ Error importing components: {e}")
+    print(f"  Error importing components: {e}")
     print("   Please ensure Sentinel_1.py and Sentinel_2.py are in the same directory")
     exit(1)
 
-# ===========================
-# TaintSentinel Model (Complete)
-# ===========================
-
+ # TaintSentinel Model (Complete)
+ 
 class Sentinel_1(nn.Module):
     """مدل نهایی: ترکیب GlobalGNN و PathGNN با Gated Fusion"""
     
@@ -138,10 +130,8 @@ class Sentinel_1(nn.Module):
         
         return output
 
-# ===========================
-# Training Functions
-# ===========================
-
+ # Training Functions
+ 
 def train_epoch(model, train_loader, criterion, optimizer, device):
     """آموزش برای یک epoch"""
     model.train()
@@ -231,7 +221,7 @@ def train_model(model, train_loader, val_loader, num_epochs=50,
     best_val_f1 = 0
     best_model_state = None
     
-    print("\n🚀 Starting training...")
+    print("\n  Starting training...")
     print("-" * 60)
     
     start_time = time.time()
@@ -284,7 +274,7 @@ def train_model(model, train_loader, val_loader, num_epochs=50,
             print(f"  LR: {optimizer.param_groups[0]['lr']:.6f}")
     
     total_time = time.time() - start_time
-    print(f"\n✅ Training completed in {total_time/60:.1f} minutes")
+    print(f"\n  Training completed in {total_time/60:.1f} minutes")
     print(f"   Best validation F1: {best_val_f1:.4f}")
     
     # بارگذاری best model
@@ -292,10 +282,8 @@ def train_model(model, train_loader, val_loader, num_epochs=50,
     
     return model, history
 
-# ===========================
-# Evaluation Functions
-# ===========================
-
+ # Evaluation Functions
+  
 def evaluate_model(model, test_loader, device, threshold=0.5):  # فقط اضافه کردن threshold
     """ارزیابی جامع مدل"""
     model.eval()
@@ -304,7 +292,7 @@ def evaluate_model(model, test_loader, device, threshold=0.5):  # فقط اضا�
     all_labels = []
     all_probs = []
 
-    print(f"\n📊 Evaluating model on test set (threshold={threshold:.2f})...")  # تغییر در print
+    print(f"\n Evaluating model on test set (threshold={threshold:.2f})...")  # تغییر در print
 
     with torch.no_grad():
         for batch in test_loader:
@@ -345,7 +333,7 @@ def find_best_threshold(model, val_loader, device, optimize_for='f1'):
     all_probs = []
     all_labels = []
 
-    print(f"\n🔍 Finding optimal threshold (optimizing for {optimize_for})...")
+    print(f"\n  Finding optimal threshold (optimizing for {optimize_for})...")
 
     with torch.no_grad():
         for batch in val_loader:
@@ -395,7 +383,7 @@ def find_best_threshold(model, val_loader, device, optimize_for='f1'):
 def print_results(metrics, scenario_name):
     """نمایش زیبای نتایج"""
     print(f"\n{'='*60}")
-    print(f"📊 Results for {scenario_name}")
+    print(f" Results for {scenario_name}")
     print(f"{'='*60}")
     print(f"F1-Score:        {metrics['f1']:.4f}")
     print(f"Precision:       {metrics['precision']:.4f}")
@@ -409,7 +397,7 @@ def print_results(metrics, scenario_name):
         print(f"Actual Safe     [{cm[0,0]:4d}  {cm[0,1]:4d}]")
         print(f"       Vuln     [{cm[1,0]:4d}  {cm[1,1]:4d}]")
     else:
-        print("   ⚠️ Warning: Only one class in predictions")
+        print("    Warning: Only one class in predictions")
 
 # ===========================
 # Main Experiment Function
@@ -430,7 +418,7 @@ def run_experiments():
     
     # ===== Experiment 1: Balanced Dataset =====
     print("\n" + "="*80)
-    print("🔬 Experiment 1: Balanced Dataset")
+    print("  Experiment 1: Balanced Dataset")
     print("="*80)
     
     # ایجاد dataset
@@ -457,7 +445,7 @@ def run_experiments():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
     
-    print(f"\n📊 Dataset splits:")
+    print(f"\n  Dataset splits:")
     print(f"   Train: {len(train_dataset)} samples")
     print(f"   Val: {len(val_dataset)} samples")
     print(f"   Test: {len(test_dataset)} samples")
@@ -467,7 +455,7 @@ def run_experiments():
     model_balanced = Sentinel_1()
     model_balanced.load_state_dict(torch.load('taintsentinel_balanced.pt'))
     model_balanced = model_balanced.to(device)
-    print("✅ Loaded pre-trained balanced model")
+    print(" Loaded pre-trained balanced model")
 
     # حذف قسمت آموزش - دیگر نیازی نیست
     # پیدا کردن بهترین threshold
@@ -479,7 +467,7 @@ def run_experiments():
     
     # ===== Experiment 2: Imbalanced Dataset =====
     print("\n\n" + "="*80)
-    print("🔬 Experiment 2: Imbalanced Dataset")
+    print("  Experiment 2: Imbalanced Dataset")
     print("="*80)
     
     # ایجاد dataset
@@ -501,7 +489,7 @@ def run_experiments():
     weight_vuln = total / (2 * num_vuln)
     class_weights = [weight_safe, weight_vuln]
     
-    print(f"\n⚖️ Class distribution:")
+    print(f"\n  Class distribution:")
     print(f"   Safe: {num_safe} ({num_safe/total*100:.1f}%)")
     print(f"   Vulnerable: {num_vuln} ({num_vuln/total*100:.1f}%)")
     print(f"   Class weights: Safe={class_weights[0]:.2f}, Vulnerable={class_weights[1]:.2f}")
@@ -522,7 +510,7 @@ def run_experiments():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
     
-    print(f"\n📊 Dataset splits:")
+    print(f"\n  Dataset splits:")
     print(f"   Train: {len(train_dataset)} samples")
     print(f"   Val: {len(val_dataset)} samples")
     print(f"   Test: {len(test_dataset)} samples")
@@ -531,7 +519,7 @@ def run_experiments():
     model_imbalanced = Sentinel_1()
     model_imbalanced.load_state_dict(torch.load('taintsentinel_imbalanced.pt'))
     model_imbalanced = model_imbalanced.to(device)
-    print("✅ Loaded pre-trained imbalanced model")
+    print("  Loaded pre-trained imbalanced model")
 
 
     # پیدا کردن بهترین threshold با تاکید بر recall
@@ -546,9 +534,9 @@ def run_experiments():
     metrics_imbalanced = evaluate_model(model_imbalanced, test_loader, device, threshold=best_threshold_imbalanced)
 
     # بررسی و بهبود بیشتر اگر recall کم است
-    print(f"\n📊 Initial Recall: {metrics_imbalanced['recall']:.4f}")
+    print(f"\n  Initial Recall: {metrics_imbalanced['recall']:.4f}")
     if metrics_imbalanced['recall'] < 0.65:
-        print("⚠️ Recall is still low, trying more aggressive threshold...")
+        print(" Recall is still low, trying more aggressive threshold...")
 
         # تست threshold پایین‌تر
         aggressive_threshold = max(0.05, best_threshold_imbalanced - 0.10)
@@ -559,7 +547,7 @@ def run_experiments():
 
         # اگر بهبود قابل توجه در recall داشتیم
         if metrics_aggressive['recall'] > metrics_imbalanced['recall'] + 0.10:
-            print(f"   ✅ Better recall achieved: {metrics_aggressive['recall']:.4f}")
+            print(f"    Better recall achieved: {metrics_aggressive['recall']:.4f}")
             metrics_imbalanced = metrics_aggressive
             best_threshold_imbalanced = aggressive_threshold
     print_results(metrics_imbalanced, "Imbalanced Dataset")
@@ -571,7 +559,7 @@ def run_experiments():
         true_positives = cm[1, 1]
         total_vulnerable = false_negatives + true_positives
 
-        print(f"\n📊 Vulnerable Detection Analysis:")
+        print(f"\n  Vulnerable Detection Analysis:")
         print(f"   Total vulnerable contracts: {total_vulnerable}")
         print(f"   Correctly detected: {true_positives} ({true_positives / total_vulnerable * 100:.1f}%)")
         print(f"   Missed (False Negatives): {false_negatives} ({false_negatives / total_vulnerable * 100:.1f}%)")
@@ -579,7 +567,7 @@ def run_experiments():
     
     # ===== Final Comparison =====
     print("\n\n" + "="*80)
-    print("📊 Final Comparison")
+    print("  Final Comparison")
     print("="*80)
     print(f"\n{'Metric':<15} {'Balanced':<12} {'Imbalanced':<12}")
     print("-" * 40)
@@ -592,27 +580,25 @@ def run_experiments():
         'balanced': {'model': model_balanced, 'metrics': metrics_balanced},
         'imbalanced': {'model': model_imbalanced, 'metrics': metrics_imbalanced}
     }
-# ===========================
-# Run Everything
-# ===========================
-
+ # Run Everything
+ 
 if __name__ == "__main__":
-    print("🚀 TaintSentinel Complete Training Pipeline")
+    print("  TaintSentinel Complete Training Pipeline")
     print("="*80)
     
     try:
         results = run_experiments()
         
         print("\n\n" + "="*80)
-        print("✅ All experiments completed successfully!")
+        print("  All experiments completed successfully!")
         print("="*80)
         
         # ذخیره مدل‌ها
         torch.save(results['balanced']['model'].state_dict(), 'taintsentinel_balanced.pt')
         torch.save(results['imbalanced']['model'].state_dict(), 'taintsentinel_imbalanced.pt')
-        print("\n💾 Models saved successfully!")
+        print("\n  Models saved successfully!")
         
     except Exception as e:
-        print(f"\n❌ Error: {str(e)}")
+        print(f"\n  Error: {str(e)}")
         import traceback
         traceback.print_exc()
