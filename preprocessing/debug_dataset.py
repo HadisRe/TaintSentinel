@@ -1,11 +1,9 @@
 import os
 from pathlib import Path
 
-# بررسی مسیرها و فایل‌ها
 def check_directories():
-    print("=== بررسی مسیرها ===\n")
+    print("=== Directory Check ===\n")
     
-    # مسیرهای اصلی
     paths_to_check = {
         "Vulnerable contracts source": r"C:\Users\Hadis\Documents\bad_randomness_main\comprehensive_analysis\vulnerable_contracts",
         "Safe contracts source": r"C:\Users\Hadis\Documents\bad_randomness_main\comprehensive_analysis\safe_contracts",
@@ -20,26 +18,24 @@ def check_directories():
         print(f"Path: {path}")
         
         if Path(path).exists():
-            print("✓ مسیر وجود دارد")
+            print("✓ Path exists")
             
-            # شمارش فایل‌ها و پوشه‌ها
             files = list(Path(path).iterdir())
             sol_files = list(Path(path).glob("*.sol"))
             directories = [f for f in files if f.is_dir()]
             
-            print(f"  - تعداد کل آیتم‌ها: {len(files)}")
-            print(f"  - تعداد فایل‌های .sol: {len(sol_files)}")
-            print(f"  - تعداد پوشه‌ها: {len(directories)}")
+            print(f"  - Total items: {len(files)}")
+            print(f"  - .sol files: {len(sol_files)}")
+            print(f"  - Directories: {len(directories)}")
             
-            # نمایش چند نمونه
             if files:
-                print("  - نمونه آیتم‌ها:")
+                print("  - Sample items:")
                 for i, f in enumerate(files[:5]):
-                    print(f"    {i+1}. {f.name} {'(پوشه)' if f.is_dir() else ''}")
+                    print(f"    {i+1}. {f.name} {'(directory)' if f.is_dir() else ''}")
                 if len(files) > 5:
-                    print(f"    ... و {len(files)-5} مورد دیگر")
+                    print(f"    ... and {len(files)-5} more")
         else:
-            print("✗ مسیر وجود ندارد!")
+            print("✗ Path does not exist!")
 
 if __name__ == "__main__":
     check_directories()
