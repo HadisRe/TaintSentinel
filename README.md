@@ -25,6 +25,27 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
 | AUC-ROC | 0.951 | 0.940 |
 | PRA | 0.970 | 0.920 |
 
+## Repository StructureTaintSentinel/
+├── dataset/
+│   ├── contracts/
+│   │   ├── vulnerable/
+│   │   └── safe/
+│   └── dataset_metadata.json
+├── preprocessing/
+│   ├── complete_parser1.py
+│   ├── source2.py
+│   ├── sink3.py
+│   ├── ModularSemanticGraph.py
+│   └── TaintAnalysis.py
+├── model/
+│   ├── Sentinel_1.py
+│   ├── Sentinel_2.py
+│   ├── Sentinel_3.py
+│   └── Sentinel_4.py
+├── requirements.txt
+└── README.md
+
+
 ## Quick Start
 
 ### Prerequisites
