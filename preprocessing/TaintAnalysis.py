@@ -35,8 +35,7 @@ class RiskFactor(Enum):
 
 @dataclass
 class TaintedPath:
-    """Represents a tainted path from source to sink"""
-    source_node: str
+     source_node: str
     sink_node: str
     path_nodes: List[str]  # All nodes in order
     path_edges: List[Dict[str, str]]  # Edge details
@@ -65,8 +64,7 @@ class TaintedPath:
 
 
 class TaintAnalyzer:
-    """Main analyzer for taint propagation and path extraction"""
-    
+     
     def __init__(self, contract_name: str, graph_path: str = "contract_ast"):
         self.contract_name = contract_name
         self.graph_path = graph_path
@@ -92,8 +90,7 @@ class TaintAnalyzer:
         }
         
     def analyze(self) -> bool:
-        """Main analysis pipeline"""
-        print(f"\n{'='*80}")
+         print(f"\n{'='*80}")
         print(f" TAINT ANALYSIS FOR: {self.contract_name}")
         print('='*80)
         
@@ -122,8 +119,7 @@ class TaintAnalyzer:
         return True
     
     def _load_semantic_graph(self) -> bool:
-        """Load the semantic graph from JSON"""
-        graph_file = os.path.join(self.graph_path, f"{self.contract_name}_semantic_graph.json")
+         graph_file = os.path.join(self.graph_path, f"{self.contract_name}_semantic_graph.json")
         
         if not os.path.exists(graph_file):
             print(f" Semantic graph not found: {graph_file}")
@@ -151,8 +147,7 @@ class TaintAnalyzer:
         return True
     
     def _build_networkx_graph(self):
-        """Build NetworkX directed graph for path finding"""
-        # Add nodes
+         # Add nodes
         for node_id, node_data in self.nodes.items():
             self.graph.add_node(node_id, **node_data)
             
@@ -166,16 +161,13 @@ class TaintAnalyzer:
             )
             
     def _propagate_taint(self):
-        """Propagate taint from sources through the graph"""
-        print("\nPropagating taint from sources...")
+         print("\nPropagating taint from sources...")
         
-        # Initialize taint for all source nodes
-        source_nodes = [n_id for n_id, n_data in self.nodes.items() 
+         source_nodes = [n_id for n_id, n_data in self.nodes.items() 
                        if n_data.get('is_source')]
         
         for source_id in source_nodes:
-            # BFS to propagate taint from this source
-            visited = set()
+             visited = set()
             queue = deque([source_id])
             self.tainted_nodes[source_id].add(source_id)
             
@@ -186,49 +178,41 @@ class TaintAnalyzer:
                     
                 visited.add(current)
                 
-                # Get current node data
-                current_node = self.nodes[current]
+                 current_node = self.nodes[current]
                 
-                # Propagate to successors
-                for successor in self.graph.successors(current):
+                 for successor in self.graph.successors(current):
                     if self._should_propagate_taint(current, successor, source_id):
                         self.tainted_nodes[successor].add(source_id)
                         queue.append(successor)
                         
-        # Count tainted sinks
-        for node_id, node_data in self.nodes.items():
+         for node_id, node_data in self.nodes.items():
             if node_data.get('is_sink') and self.tainted_nodes[node_id]:
                 self.stats['tainted_sinks'] += 1
                 
         print(f" Taint propagation complete: {self.stats['tainted_sinks']} sinks tainted")
         
     def _should_propagate_taint(self, from_node: str, to_node: str, source: str) -> bool:
-        """Determine if taint should propagate based on edge type and context"""
-        edge_data = self.graph.get_edge_data(from_node, to_node)
+         edge_data = self.graph.get_edge_data(from_node, to_node)
         if not edge_data:
             return False
             
         edge_type = edge_data.get('type', 'control_flow')
         
-        # Always propagate through control flow
-        if edge_type == 'control_flow':
+         if edge_type == 'control_flow':
             return True
             
-        # Propagate through data dependencies
+ 
         if edge_type == 'data_dependency':
-            # Check if the variable is actually tainted
-            var = edge_data.get('var', '')
+             var = edge_data.get('var', '')
             from_node_data = self.nodes[from_node]
             
-            # If source defines this variable, propagate
-            if var in from_node_data.get('defined_vars', []):
+             if var in from_node_data.get('defined_vars', []):
                 return True
                 
-        return True  # Default: propagate
+        return True   
         
     def _extract_tainted_paths(self):
-        """Extract all possible paths from sources to tainted sinks"""
-        print("\nExtracting tainted paths...")
+         print("\nExtracting tainted paths...")
         
         source_nodes = [n_id for n_id, n_data in self.nodes.items() 
                        if n_data.get('is_source')]
@@ -236,8 +220,7 @@ class TaintAnalyzer:
         for source_id in source_nodes:
             source_type = self.nodes[source_id].get('sources', ['unknown'])[0]
             
-            # Find all sinks tainted by this source
-            tainted_sinks = [
+             tainted_sinks = [
                 n_id for n_id, tainters in self.tainted_nodes.items()
                 if source_id in tainters and self.nodes[n_id].get('is_sink')
             ]
@@ -245,8 +228,7 @@ class TaintAnalyzer:
             for sink_id in tainted_sinks:
                 sink_type = self.nodes[sink_id].get('sinks', ['unknown'])[0]
                 
-                # Find all simple paths (no cycles)
-                try:
+                 try:
                     paths = list(nx.all_simple_paths(
                         self.graph, 
                         source_id, 
@@ -255,8 +237,7 @@ class TaintAnalyzer:
                     ))
                     
                     for path in paths:
-                        # Build path edges
-                        path_edges = []
+                         path_edges = []
                         for i in range(len(path) - 1):
                             edge_data = self.graph.get_edge_data(path[i], path[i+1])
                             path_edges.append({
@@ -286,14 +267,12 @@ class TaintAnalyzer:
         print(f"  Found {self.stats['total_paths']} tainted paths")
         
     def _assess_path_risks(self):
-        """Assess risk level for each tainted path"""
-        print("\nAssessing path risks...")
+         print("\nAssessing path risks...")
         
         for path in self.tainted_paths:
             self._assess_single_path(path)
             
-            # Update statistics
-            if path.risk_level == RiskLevel.HIGH:
+             if path.risk_level == RiskLevel.HIGH:
                 self.stats['high_risk_paths'] += 1
             elif path.risk_level == RiskLevel.MEDIUM:
                 self.stats['medium_risk_paths'] += 1
@@ -301,60 +280,48 @@ class TaintAnalyzer:
                 self.stats['low_risk_paths'] += 1
                 
     def _assess_single_path(self, path: TaintedPath):
-        """Assess risk for a single path using context-aware rules"""
-        risk_factors = []
+         risk_factors = []
         mitigating_factors = []
         
-        # Rule 1: Source Criticality
-        if path.source_type in ['blockhash', 'difficulty', 'prevrandao']:
+         if path.source_type in ['blockhash', 'difficulty', 'prevrandao']:
             risk_factors.append(RiskFactor.CRITICAL_ENTROPY_SOURCE)
         elif path.source_type in ['timestamp', 'blocknumber']:
             risk_factors.append(RiskFactor.WEAK_ENTROPY_SOURCE)
             
-        # Rule 2: Sink Sensitivity
-        if path.sink_type == 'randomGeneration':
-            # Check for gambling context
-            if self._has_gambling_context(path):
+         if path.sink_type == 'randomGeneration':
+             if self._has_gambling_context(path):
                 risk_factors.append(RiskFactor.GAMBLING_CONTEXT)
                 
-            # Check for financial impact
-            if self._has_financial_impact(path):
+             if self._has_financial_impact(path):
                 risk_factors.append(RiskFactor.FINANCIAL_IMPACT)
                 
-        # Rule 3: Path Complexity
-        if path.path_length <= 3:
+         if path.path_length <= 3:
             risk_factors.append(RiskFactor.DIRECT_DEPENDENCY)
         elif path.path_length > 7:
             mitigating_factors.append(RiskFactor.COMPLEX_COMPUTATION)
             
-        # Rule 4: Check for mixing operations
-        if self._has_mixing_operations(path):
+         if self._has_mixing_operations(path):
             mitigating_factors.append(RiskFactor.ENTROPY_MIXING)
             
-        # Rule 5: Access Control
-        access_control = self._check_access_control(path)
+         access_control = self._check_access_control(path)
         if access_control == 'admin':
             mitigating_factors.append(RiskFactor.ADMIN_ONLY_EXECUTION)
         elif access_control == 'role':
             mitigating_factors.append(RiskFactor.RESTRICTED_ACCESS)
             
-        # Rule 6: Time constraints
-        time_constraint = self._check_time_constraints(path)
+         time_constraint = self._check_time_constraints(path)
         if time_constraint == 'short':
             risk_factors.append(RiskFactor.MANIPULABLE_TIMEFRAME)
         elif time_constraint == 'long':
             mitigating_factors.append(RiskFactor.SUFFICIENT_TIME_CONSTRAINT)
             
-        # Store factors
-        path.risk_factors = risk_factors
+         path.risk_factors = risk_factors
         path.mitigating_factors = mitigating_factors
         
-        # Determine final risk level
-        path.risk_level = self._determine_risk_level(risk_factors, mitigating_factors)
+         path.risk_level = self._determine_risk_level(risk_factors, mitigating_factors)
         
     def _has_gambling_context(self, path: TaintedPath) -> bool:
-        """Check if path contains gambling-related patterns"""
-        gambling_patterns = [
+         gambling_patterns = [
             'lottery', 'winner', 'random', 'bet', 'gambl',
             'prize', 'jackpot', 'luck', 'dice', 'coin'
         ]
@@ -370,13 +337,10 @@ class TaintAnalyzer:
         return False
         
     def _has_financial_impact(self, path: TaintedPath) -> bool:
-        """Check if path affects value transfers"""
-        # Check if sink is value transfer
-        if path.sink_type == 'valueTransfer':
+         if path.sink_type == 'valueTransfer':
             return True
             
-        # Check for transfer/send in path
-        for node_id in path.path_nodes:
+         for node_id in path.path_nodes:
             node = self.nodes[node_id]
             if node.get('type') in ['transfer', 'send']:
                 return True
@@ -386,22 +350,18 @@ class TaintAnalyzer:
         return False
         
     def _has_mixing_operations(self, path: TaintedPath) -> bool:
-        """Check if path contains proper entropy mixing"""
-        for node_id in path.path_nodes:
+         for node_id in path.path_nodes:
             node = self.nodes[node_id]
             node_type = node.get('type', '')
             
-            # Check for hash functions with multiple inputs
-            if node_type in ['keccak', 'sha256', 'sha3']:
-                # Simple heuristic: if uses multiple variables
-                if len(node.get('used_vars', [])) > 2:
+             if node_type in ['keccak', 'sha256', 'sha3']:
+                 if len(node.get('used_vars', [])) > 2:
                     return True
                     
         return False
         
     def _check_access_control(self, path: TaintedPath) -> str:
-        """Check for access control in path"""
-        for node_id in path.path_nodes:
+         for node_id in path.path_nodes:
             node = self.nodes[node_id]
             code = node.get('code_snippet', '').lower()
             
@@ -413,15 +373,12 @@ class TaintAnalyzer:
         return 'none'
         
     def _check_time_constraints(self, path: TaintedPath) -> str:
-        """Check for time-based constraints in path"""
-        for node_id in path.path_nodes:
+         for node_id in path.path_nodes:
             node = self.nodes[node_id]
             code = node.get('code_snippet', '')
             
-            # Look for time comparisons
-            if 'block.timestamp' in code or 'now' in code:
-                # Check for specific time windows
-                if '15' in code or '< 30' in code:
+             if 'block.timestamp' in code or 'now' in code:
+                 if '15' in code or '< 30' in code:
                     return 'short'
                 elif '>' in code and any(t in code for t in ['days', 'hours', 'weeks']):
                     return 'long'
@@ -430,10 +387,8 @@ class TaintAnalyzer:
         
     def _determine_risk_level(self, risk_factors: List[RiskFactor], 
                             mitigating_factors: List[RiskFactor]) -> RiskLevel:
-        """Determine final risk level based on factors"""
-        
-        # HIGH RISK conditions
-        if (RiskFactor.CRITICAL_ENTROPY_SOURCE in risk_factors and 
+         
+         if (RiskFactor.CRITICAL_ENTROPY_SOURCE in risk_factors and 
             RiskFactor.GAMBLING_CONTEXT in risk_factors):
             return RiskLevel.HIGH
             
@@ -445,8 +400,7 @@ class TaintAnalyzer:
             RiskFactor.MANIPULABLE_TIMEFRAME in risk_factors):
             return RiskLevel.HIGH
             
-        # LOW RISK conditions
-        if len(risk_factors) == 0:
+         if len(risk_factors) == 0:
             return RiskLevel.LOW
             
         if (len(mitigating_factors) > len(risk_factors) and 
@@ -458,12 +412,10 @@ class TaintAnalyzer:
             len(risk_factors) <= 1):
             return RiskLevel.LOW
             
-        # Default to MEDIUM
-        return RiskLevel.MEDIUM
+         return RiskLevel.MEDIUM
         
     def _save_results(self):
-        """Save analysis results to JSON"""
-        results = {
+         results = {
             "contract": self.contract_name,
             "statistics": self.stats,
             "paths": [path.to_dict() for path in self.tainted_paths],
@@ -486,8 +438,7 @@ class TaintAnalyzer:
         print(f"\n Results saved to: {output_file}")
         
     def _display_summary(self):
-        """Display analysis summary"""
-        print("\n" + "="*80)
+         print("\n" + "="*80)
         print(" ANALYSIS SUMMARY")
         print("="*80)
         
@@ -502,8 +453,7 @@ class TaintAnalyzer:
         print(f"  Sinks: {self.stats['total_sinks']}")
         print(f"  Tainted Sinks: {self.stats['tainted_sinks']}")
         
-        # Show sample high-risk paths
-        high_risk_paths = [p for p in self.tainted_paths if p.risk_level == RiskLevel.HIGH]
+         high_risk_paths = [p for p in self.tainted_paths if p.risk_level == RiskLevel.HIGH]
         if high_risk_paths:
             print(f"\n Sample High-Risk Paths:")
             for path in high_risk_paths[:3]:
@@ -517,17 +467,14 @@ class TaintAnalyzer:
 
 
 def analyze_contract(contract_name: str):
-    """Analyze a single contract"""
-    analyzer = TaintAnalyzer(contract_name)
+     analyzer = TaintAnalyzer(contract_name)
     return analyzer.analyze()
 
 
 def analyze_all_contracts(graph_path: str = "contract_ast"):
-    """Analyze all contracts with semantic graphs"""
-    print("\nStarting Taint Analysis for All Contracts...")
+     print("\nStarting Taint Analysis for All Contracts...")
     
-    # Find all semantic graph files
-    graph_files = [f for f in os.listdir(graph_path) 
+     graph_files = [f for f in os.listdir(graph_path) 
                    if f.endswith("_semantic_graph.json")]
     
     print(f"Found {len(graph_files)} contracts to analyze")
@@ -555,5 +502,4 @@ def analyze_all_contracts(graph_path: str = "contract_ast"):
     
 
 if __name__ == "__main__":
-     # analyze_contract("SimpleRandomness")
-     analyze_all_contracts()
+      analyze_all_contracts()
