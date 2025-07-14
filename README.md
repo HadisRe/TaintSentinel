@@ -44,7 +44,6 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
   - **Sentinel_3.py** - Training pipeline
   - **Sentinel_4.py** - Enhanced with PRA
 - **requirements.txt** - Dependencies
-- **README.md** - This file
 
 ## Quick Start
 
