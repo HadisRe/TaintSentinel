@@ -41,7 +41,7 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
 
 ### Installation
 
-```bash
+ 
 # Clone the repository
 git clone https://github.com/HadisRe/TaintSentinel.git
 cd TaintSentinel
