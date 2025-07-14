@@ -49,3 +49,25 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
 ### Dataset
 
 The TaintSentinel dataset contains 4,487 smart contracts (231 vulnerable, 4,256 safe) organized in two batches. Dataset is included in the repository under `dataset/contracts/`.
+
+### Running the Preprocessing Pipeline
+
+Execute the preprocessing steps in order:
+
+`cd preprocessing`
+
+`python complete_parser1.py`
+
+`python source2.py`
+
+`python sink3.py`
+
+`python ModularSemanticGraph.py`
+
+`python TaintAnalysis.py`
+
+### Training the Model
+
+`cd ../model`
+
+`python Sentinel_3.py`
