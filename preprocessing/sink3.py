@@ -5,8 +5,7 @@ from typing import Dict, List, Any, Optional, Tuple, Set
 from pathlib import Path
 import logging
 
-# Set up logging
-logging.basicConfig(
+ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     encoding='utf-8',
@@ -33,8 +32,7 @@ class EvidenceBasedAssessor:
             "controlFlow": {"rank": 7, "category": "Control Flow"}
         }
 
-        # CWE Mappings
-        self.cwe_mappings = {
+         self.cwe_mappings = {
             "valueTransfer": ["CWE-691", "CWE-841"],
             "randomGeneration": ["CWE-330", "CWE-338"],
             "accessControl": ["CWE-284", "CWE-863"],
@@ -44,8 +42,7 @@ class EvidenceBasedAssessor:
             "controlFlow": ["CWE-670", "CWE-754"]
         }
 
-        # SWC Registry
-        self.swc_registry = {
+         self.swc_registry = {
             "valueTransfer": ["SWC-107", "SWC-105"],
             "randomGeneration": ["SWC-120"],
             "accessControl": ["SWC-105", "SWC-106"],
@@ -55,8 +52,7 @@ class EvidenceBasedAssessor:
             "controlFlow": ["SWC-110", "SWC-113"]
         }
 
-        # Historical Attacks Database
-        self.historical_attacks = {
+         self.historical_attacks = {
             "valueTransfer": [
                 {"name": "TheDAO (2016)", "loss": "$60M"},
                 {"name": "Parity Wallet (2017)", "loss": "$30M"}
@@ -256,12 +252,12 @@ class SinkIdentifier:
                 "sinkType": "randomGeneration",
                 "requiresRandomContext": True
             },
-            "sha256": {  # اضافه شده
+            "sha256": {  
                 "pattern": r'\bsha256\s*\(',
                 "sinkType": "randomGeneration",
                 "requiresRandomContext": True
             },
-            "sha3": {  # اضافه شده
+            "sha3": {  
                 "pattern": r'\bsha3\s*\(',
                 "sinkType": "randomGeneration",
                 "requiresRandomContext": True
