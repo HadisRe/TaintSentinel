@@ -1,8 +1,4 @@
-"""
-Semantic Graph Builder - بدون Taint Analysis
-فقط ساخت گراف و شناسایی sources/sinks
-"""
-
+ 
 import json
 import os
 import re
@@ -644,7 +640,7 @@ class SemanticGraphBuilder:
             if var not in keywords and not var.isupper() and len(var) > 1:
                 variables.add(var)
 
-        # قانون کلی: اگر property access هست (مثل msg.sender)، آخرین بخش را حذف کن
+ 
         property_pattern = r'\b(?:msg|tx|block|this)\s*\.\s*(\w+)'
         for match in re.finditer(property_pattern, code_clean):
             prop_name = match.group(1)
@@ -666,8 +662,7 @@ class SemanticGraphBuilder:
         # Group sources by type
         sources_by_type = defaultdict(list)
         for source in ast_sources:
-            # پشتیبانی از فرمت جدید AST که EnhancedSourceDetector تولید می‌کند
-            source_type = source.get('sourceType') or source.get('type', '')
+             source_type = source.get('sourceType') or source.get('type', '')
             sources_by_type[source_type].append(source)
 
         marked_count = 0
@@ -678,8 +673,7 @@ class SemanticGraphBuilder:
                 print(f"  Processing {len(sources)} {source_type} sources...")
 
             for source in sources:
-                # پشتیبانی از فرمت جدید
-                matched_text = source.get('matchedText', '') or source.get('pattern', '')
+                 matched_text = source.get('matchedText', '') or source.get('pattern', '')
 
                 # Find best matching node with stricter criteria
                 best_node = self._find_node_for_source(matched_text, source_type)
@@ -694,8 +688,7 @@ class SemanticGraphBuilder:
                     if self.debug:
                         print(f"     Marked {best_node.id}: {best_node.label[:40]}...")
 
-                # اگر node پیدا نشد و source مهم است (state variables مثلاً)
-                elif not best_node and source.get('riskLevel') in ['critical', 'high', None]:
+                 elif not best_node and source.get('riskLevel') in ['critical', 'high', None]:
                     # ایجاد یک node جدید برای این source
                     node_id = f"SRC_{self.node_counter}"
                     self.node_counter += 1
@@ -929,7 +922,7 @@ class SemanticGraphBuilder:
         if len(ast_sinks) == 0:
             self._mark_sinks_by_pattern()
 
-        print(f"  ✅ Total marked sinks: {len(self.marked_sink_nodes)}")
+        print(f"   Total marked sinks: {len(self.marked_sink_nodes)}")
 
         return True
 
@@ -1078,8 +1071,7 @@ class SemanticGraphBuilder:
                     if (re.search(var_pattern, node.code_snippet) or
                             re.match(assignment_pattern, node.code_snippet.strip())):
 
-                        # جلوگیری از edge تکراری
-                        existing_edge = any(
+                         existing_edge = any(
                             e['source'] == var_node_id and e['target'] == node_id
                             for e in self.edges
                         )
@@ -1228,8 +1220,7 @@ class SemanticGraphBuilder:
             print(f"  {var}{taint_marker} depends on: {deps_list}")
             displayed_deps += 1
 
-        # Summary
-        print(f"\n SUMMARY:")
+         print(f"\n SUMMARY:")
         print(f"  Total Nodes: {len(self.nodes)}")
         print(f"  Total Edges: {len(self.edges)}")
         print(f"  Sources: {len(self.marked_source_nodes)}")
