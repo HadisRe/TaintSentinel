@@ -42,11 +42,12 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/HadisRe/TaintSentinel.git
-cd TaintSentinel
+`git clone https://github.com/HadisRe/TaintSentinel.git`
 
-# Install dependencies
-pip install -r requirements.txt
-```
+`cd TaintSentinel`
+
+`pip install -r requirements.txt`
+
+### Dataset
+
+The TaintSentinel dataset contains 2,017 smart contracts (148 vulnerable, 1,869 safe). Dataset is included in the repository under `dataset/contracts/`.
