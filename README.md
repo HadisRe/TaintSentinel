@@ -39,9 +39,7 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
 - Scikit-learn
 - Pathlib (built-in Python 3.4+)
 
-### Installation
 
-```markdown
 ### Installation
 
 ```bash
