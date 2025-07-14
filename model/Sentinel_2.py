@@ -1,8 +1,4 @@
-"""
-TaintSentinel - Part 2: GNN Models
-این قسمت شامل GlobalGNN و PathGNN با Hierarchical Aggregation است
-"""
-
+ 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,10 +12,8 @@ warnings.filterwarnings('ignore')
 # Import dataset from previous part
 from Sentinel_1 import SmartContractDataset
 
-# ===========================
-# GlobalGNN Model
-# ===========================
-
+ # GlobalGNN Model
+ 
 class GlobalGNN(nn.Module):
     """شبکه عصبی برای پردازش کل گراف"""
 
@@ -56,10 +50,8 @@ class GlobalGNN(nn.Module):
 
         return graph_embedding
 
-# ===========================
-# PathGNN Model with Hierarchical Aggregation
-# ===========================
-
+ # PathGNN Model with Hierarchical Aggregation
+ 
 class PathGNN(nn.Module):
     """شبکه عصبی برای پردازش مسیرها با قابلیت aggregation"""
 
@@ -174,14 +166,10 @@ class PathGNN(nn.Module):
 
         return aggregated_embedding
 
-# ===========================
-# Custom Collate Function
-# ===========================
-
-def custom_collate_fn(batch):
-    """
-    Custom collate function برای batch processing با تعداد متغیر مسیر
-    """
+ # Custom Collate Function
+ 
+ 
+ 
     # جمع‌آوری graphs
     graphs = [item['graph'] for item in batch]
     batched_graph = Batch.from_data_list(graphs)
@@ -200,19 +188,17 @@ def custom_collate_fn(batch):
         'has_paths': has_paths
     }
 
-# ===========================
-# Test Script
-# ===========================
-
+ # Test Script
+ 
 def test_models():
     """تست GlobalGNN و PathGNN"""
-    print("🧪 Testing GNN Models...")
+    print("  Testing GNN Models...")
     print("="*60)
 
     # تنظیمات
     base_path = r"C:\Users\Hadis\Documents\NewModel1"
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"🖥️ Using device: {device}")
+    print(f"  Using device: {device}")
 
     # بارگذاری dataset
     dataset = SmartContractDataset(
@@ -233,13 +219,13 @@ def test_models():
     # گرفتن اولین batch
     batch = next(iter(test_loader))
 
-    print(f"\n📊 Batch info:")
+    print(f"\n  Batch info:")
     print(f"   - Batch size: {len(batch['labels'])}")
     print(f"   - Graph nodes: {batch['graph'].x.shape}")
     print(f"   - Number of paths per contract: {[p['num_paths'] for p in batch['paths']]}")
 
     # تست GlobalGNN
-    print("\n1️⃣ Testing GlobalGNN:")
+    print("\n Testing GlobalGNN:")
     node_feature_dim = batch['graph'].x.shape[1]
     global_gnn = GlobalGNN(
         input_dim=node_feature_dim,
@@ -254,11 +240,11 @@ def test_models():
         batch['graph'].edge_index,
         batch['graph'].batch
     )
-    print(f"   ✅ Global GNN output shape: {global_output.shape}")
+    print(f"     Global GNN output shape: {global_output.shape}")
     print(f"      Expected: [batch_size, hidden_dim*2] = [4, 256]")
 
     # تست PathGNN
-    print("\n2️⃣ Testing PathGNN:")
+    print("\n  Testing PathGNN:")
     path_gnn = PathGNN(
         node_embedding_dim=node_feature_dim,
         path_feature_dim=6,
@@ -290,11 +276,11 @@ def test_models():
 
     # Stack outputs
     path_outputs = torch.cat(path_outputs, dim=0)
-    print(f"\n   ✅ Final path embeddings shape: {path_outputs.shape}")
+    print(f"\n    Final path embeddings shape: {path_outputs.shape}")
     print(f"      Expected: [batch_size, hidden_dim] = [4, 64]")
 
     # تست حالت خاص: قرارداد بدون مسیر
-    print("\n3️⃣ Testing edge case (no paths):")
+    print("\n Testing edge case (no paths):")
     # استفاده از آخرین graph_nodes از loop قبلی
     empty_path_data = {
         'sequences': torch.zeros(1, 20).long().to(device),
@@ -303,10 +289,10 @@ def test_models():
         'num_paths': 0
     }
     empty_output = path_gnn(empty_path_data, graph_nodes)
-    print(f"   ✅ Empty path output shape: {empty_output.shape}")
+    print(f"     Empty path output shape: {empty_output.shape}")
     print(f"      All zeros: {torch.all(empty_output == 0).item()}")
     
-    print("\n✅ Model tests completed successfully!")
+    print("\n  Model tests completed successfully!")
     
 
 if __name__ == "__main__":
