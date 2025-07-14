@@ -1,8 +1,3 @@
-"""
-Context-Aware Taint Analyzer
-استخراج تمام مسیرهای ممکن بین sources و sinks با risk assessment
-"""
-
 import json
 import os
 from typing import Dict, List, Set, Tuple, Optional, Any
@@ -205,7 +200,7 @@ class TaintAnalyzer:
             if node_data.get('is_sink') and self.tainted_nodes[node_id]:
                 self.stats['tainted_sinks'] += 1
                 
-        print(f"✅ Taint propagation complete: {self.stats['tainted_sinks']} sinks tainted")
+        print(f" Taint propagation complete: {self.stats['tainted_sinks']} sinks tainted")
         
     def _should_propagate_taint(self, from_node: str, to_node: str, source: str) -> bool:
         """Determine if taint should propagate based on edge type and context"""
@@ -560,8 +555,5 @@ def analyze_all_contracts(graph_path: str = "contract_ast"):
     
 
 if __name__ == "__main__":
-    # تحلیل یک قرارداد نمونه
-    # analyze_contract("SimpleRandomness")
-    
-    # تحلیل همه قراردادها
-    analyze_all_contracts()
+     # analyze_contract("SimpleRandomness")
+     analyze_all_contracts()
