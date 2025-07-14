@@ -409,10 +409,6 @@ bytes32 safe = keccak256(abi.encodePacked(
 - **[SWC Registry - Weak Sources of Randomness (SWC-120)](https://swcregistry.io/docs/SWC-120)**
 - **[Ethereum Improvement Proposals - EIP-4399 (PREVRANDAO)](https://eips.ethereum.org/EIPS/eip-4399)**
 - **[Ethereum Yellow Paper - Block Header Specification](https://ethereum.github.io/yellowpaper/paper.pdf)**
-- **Academic Research:** 
-  - *"SoK: Unraveling Bitcoin Smart Contracts"* (IEEE S&P 2018)
-  - *"Smart Contract Security: a Practitioners' Perspective"* (ICSE 2020)
-  - *"Empirical Analysis of EIP-1559: Transaction Fees, Waiting Time, and Consensus Security"* (IMC 2021)
-
+ 
 ---
 
