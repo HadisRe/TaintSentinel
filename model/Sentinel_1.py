@@ -1,7 +1,4 @@
-"""
-TaintSentinel - Part 1: Dataset Loader (Fixed Version)
-این نسخه قبل از اضافه کردن entries، وجود فایل‌ها را بررسی می‌کند
-"""
+ 
 
 import torch
 import torch.nn as nn
@@ -13,9 +10,7 @@ import random
 import warnings
 warnings.filterwarnings('ignore')
 
-# ===========================
-# Dataset Class
-# ===========================
+ 
 
 class SmartContractDataset(torch.utils.data.Dataset):
     def __init__(self, base_path, batch_names=['batch1'], balanced=False, random_seed=42):
@@ -44,7 +39,7 @@ class SmartContractDataset(torch.utils.data.Dataset):
             index_file = batch_path / "ml_dataset" / f"dataset_index_{batch_name}.json"
 
             if not index_file.exists():
-                print(f"⚠️ {index_file} یافت نشد!")
+                print(f"  {index_file} یافت نشد!")
                 continue
 
             with open(index_file, 'r') as f:
@@ -69,9 +64,9 @@ class SmartContractDataset(torch.utils.data.Dataset):
                     batch_missing += 1
                     if batch_missing <= 5:  # فقط 5 مورد اول را نمایش بده
                         if not graph_path.exists():
-                            print(f"   ⚠️ Missing graph file: {graph_path.name}")
+                            print(f"    Missing graph file: {graph_path.name}")
                         if not path_path.exists():
-                            print(f"   ⚠️ Missing path file: {path_path.name}")
+                            print(f"    Missing path file: {path_path.name}")
 
             if batch_missing > 5:
                 print(f"   ... and {batch_missing - 5} more missing files in {batch_name}")
@@ -86,7 +81,7 @@ class SmartContractDataset(torch.utils.data.Dataset):
             total_vuln += batch_vuln
             missing_files += batch_missing
 
-            print(f"📁 {batch_name}: Safe={batch_safe}, Vulnerable={batch_vuln}, Missing={batch_missing}")
+            print(f"  {batch_name}: Safe={batch_safe}, Vulnerable={batch_vuln}, Missing={batch_missing}")
 
         # جداسازی safe و vulnerable
         self.safe_entries = [e for e in all_entries if e['label'] == 0]
@@ -96,7 +91,7 @@ class SmartContractDataset(torch.utils.data.Dataset):
         print(f"   Safe contracts: {total_safe}")
         print(f"   Vulnerable contracts: {total_vuln}")
         if missing_files > 0:
-            print(f"   ⚠️ Total missing files: {missing_files}")
+            print(f"    Total missing files: {missing_files}")
 
         # بررسی اینکه آیا داده کافی داریم
         if len(all_entries) == 0:
@@ -114,7 +109,7 @@ class SmartContractDataset(torch.utils.data.Dataset):
             min_size = min(len(self.safe_entries), len(self.vulnerable_entries))
             self.safe_entries = random.sample(self.safe_entries, min_size)
             self.entries = self.safe_entries + self.vulnerable_entries
-            print(f"   ✅ Balanced to: {min_size} samples each")
+            print(f"    Balanced to: {min_size} samples each")
         else:
             self.entries = all_entries
 
@@ -122,7 +117,7 @@ class SmartContractDataset(torch.utils.data.Dataset):
         random.seed(random_seed)
         random.shuffle(self.entries)
 
-        print(f"\n📌 Total valid samples in dataset: {len(self.entries)}")
+        print(f"\n Total valid samples in dataset: {len(self.entries)}")
 
     def __len__(self):
         return len(self.entries)
@@ -140,7 +135,7 @@ class SmartContractDataset(torch.utils.data.Dataset):
         try:
             graph_data = np.load(graph_path)
         except Exception as e:
-            print(f"\n❌ Error loading graph file: {graph_path}")
+            print(f"\n Error loading graph file: {graph_path}")
             print(f"   Error: {str(e)}")
             raise
 
@@ -149,7 +144,7 @@ class SmartContractDataset(torch.utils.data.Dataset):
         try:
             path_data = np.load(path_path)
         except Exception as e:
-            print(f"\n❌ Error loading path file: {path_path}")
+            print(f"\n Error loading path file: {path_path}")
             print(f"   Error: {str(e)}")
             raise
 
@@ -227,21 +222,18 @@ class SmartContractDataset(torch.utils.data.Dataset):
             'has_paths': entry['num_paths'] > 0
         }
 
-
-# ===========================
-# Test Script
-# ===========================
+ 
 
 def test_dataset():
     """تست بارگذاری dataset با بررسی فایل‌های گمشده"""
-    print("🧪 Testing Dataset Loader (Fixed Version)...")
+    print("  Testing Dataset Loader (Fixed Version)...")
     print("="*60)
 
     # تنظیمات
     base_path = r"C:\Users\Hadis\Documents\NewModel1"
 
     # تست با batch1
-    print("\n1️⃣ Testing with batch1 only:")
+    print("\n1️ Testing with batch1 only:")
     dataset = SmartContractDataset(
         base_path=base_path,
         batch_names=['batch1'],
@@ -249,7 +241,7 @@ def test_dataset():
     )
 
     # نمایش چند نمونه
-    print(f"\n📋 نمایش 3 نمونه اول:")
+    print(f"\n نمایش 3 نمونه اول:")
     for i in range(min(3, len(dataset))):
         try:
             sample = dataset[i]
@@ -262,10 +254,10 @@ def test_dataset():
             print(f"   - Number of paths: {sample['paths']['num_paths']}")
             print(f"   - Path sequences shape: {sample['paths']['sequences'].shape}")
         except Exception as e:
-            print(f"   ❌ Error loading sample {i+1}: {str(e)}")
+            print(f"    Error loading sample {i+1}: {str(e)}")
 
     # تست balanced dataset
-    print("\n\n2️⃣ Testing balanced dataset:")
+    print("\n\n  Testing balanced dataset:")
     try:
         dataset_balanced = SmartContractDataset(
             base_path=base_path,
@@ -279,25 +271,25 @@ def test_dataset():
         vuln_count = labels.count(1)
         print(f"\n   Balanced dataset: Safe={safe_count}, Vulnerable={vuln_count}")
     except Exception as e:
-        print(f"   ❌ Error creating balanced dataset: {str(e)}")
+        print(f"    Error creating balanced dataset: {str(e)}")
 
     # تست batch1 و batch2
-    print("\n\n3️⃣ Testing with both batches:")
+    print("\n\n Testing with both batches:")
     try:
         dataset_full = SmartContractDataset(
             base_path=base_path,
             batch_names=['batch1', 'batch2'],
             balanced=False
         )
-        print("   ✅ Both batches loaded successfully!")
+        print("   Both batches loaded successfully!")
 
         # بررسی تعداد فایل‌های گمشده
         print(f"\n   Total valid entries: {len(dataset_full)}")
 
     except Exception as e:
-        print(f"   ❌ Error loading batches: {str(e)}")
+        print(f"    Error loading batches: {str(e)}")
 
-    print("\n✅ Dataset loader test completed!")
+    print("\n Dataset loader test completed!")
 
 
 if __name__ == "__main__":
