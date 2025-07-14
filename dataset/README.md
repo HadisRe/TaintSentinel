@@ -28,28 +28,6 @@ TaintSentinel-Dataset/
 ├── contracts_list.json      
 └── README.md              
 ```
- 
-
-## File Format
-All contracts are in Solidity format (.sol files) and are named by their Ethereum address.
-
-## Usage
-
-### Loading the Dataset
-```python
-import json
-from pathlib import Path
-
-# Load metadata
-with open('dataset_metadata.json', 'r') as f:
-    metadata = json.load(f)
-
-# Filter by batch if needed
-batch1_contracts = [c for c in metadata['contracts'] if c.get('batch') == 'batch1']
-batch2_contracts = [c for c in metadata['contracts'] if c.get('batch') == 'batch2']
-```
-
-
 ## Citation
 If you use this dataset in your research, please cite:
 ```bibtex
