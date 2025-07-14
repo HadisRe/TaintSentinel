@@ -70,4 +70,10 @@ Execute the preprocessing steps in order:
 
 `cd ../model`
 
-`python Sentinel_3.py`
+`python Sentinel_1.py`  # Dataset loader testing
+
+`python Sentinel_2.py`  # Model architecture testing
+
+`python Sentinel_3.py`  # Full training pipeline
+
+`python Sentinel_4.py`  # Training with Path Risk Accuracy
