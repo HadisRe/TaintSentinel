@@ -1,0 +1,5 @@
+# Mark dataset files as vendored so they don't count in language statistics
+dataset/contracts/**/*.sol linguist-vendored
+
+# Ensure Python files are detected
+*.py linguist-language=Python
