@@ -49,10 +49,6 @@ batch1_contracts = [c for c in metadata['contracts'] if c.get('batch') == 'batch
 batch2_contracts = [c for c in metadata['contracts'] if c.get('batch') == 'batch2']
 ```
 
-### Using with TaintSentinel
-1. Run preprocessing scripts to generate CFG and taint paths
-2. Use the generated graphs with the dual-stream GNN model
-3. Evaluate using the provided train/validation/test splits
 
 ## Citation
 If you use this dataset in your research, please cite:
