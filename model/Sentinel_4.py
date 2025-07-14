@@ -1,7 +1,4 @@
-"""
-TaintSentinel - Complete Training Pipeline with Path Risk Accuracy (PRA)
-کد کامل با پیاده‌سازی هر 5 معیار ارزیابی
-"""
+ 
 
 import torch
 import torch.nn as nn
@@ -17,22 +14,17 @@ import time
 import warnings
 warnings.filterwarnings('ignore')
 
-# ===========================
-# Import Models from Previous Files
-# ===========================
-try:
+ # Import Models from Previous Files
+ try:
     from Sentinel_1 import SmartContractDataset
     from Sentinel_2 import GlobalGNN, PathGNN, custom_collate_fn
-    print("✅ Successfully imported components from previous files")
+    print("  Successfully imported components from previous files")
 except ImportError as e:
-    print(f"❌ Error importing components: {e}")
+    print(f"  Error importing components: {e}")
     print("   Please ensure Sentinel_1.py and Sentinel_2.py are in the same directory")
     exit(1)
 
-# ===========================
-# NEW: Path Risk Functions for PRA
-# ===========================
-
+  
 def calculate_path_risk_label(path_data):
     """
     محاسبه برچسب ریسک واقعی برای یک مسیر بر اساس ویژگی‌های آن
@@ -55,10 +47,8 @@ def calculate_path_risk_label(path_data):
     else:
         return 0  # LOW
 
-# ===========================
-# ENHANCED Model with Path Risk Prediction
-# ===========================
-
+ # ENHANCED Model with Path Risk Prediction
+ 
 class TaintSentinelWithPRA(nn.Module):
     """مدل نهایی با قابلیت پیش‌بینی ریسک مسیر برای PRA"""
 
@@ -143,8 +133,7 @@ class TaintSentinelWithPRA(nn.Module):
             path_embedding = self.path_gnn(path_data, graph_nodes)
             path_embeddings.append(path_embedding)
 
-            # NEW: پیش‌بینی ریسک مسیر
-            if return_path_risks:
+             if return_path_risks:
                 path_risk = self.path_risk_classifier(path_embedding)
                 path_risk_predictions.append(path_risk)
 
@@ -161,10 +150,7 @@ class TaintSentinelWithPRA(nn.Module):
             return output, path_risks
         else:
             return output
-
-# ===========================
-# MODIFIED Training Functions with PRA
-# ===========================
+ 
 
 def train_epoch(model, train_loader, criterion, path_risk_criterion, optimizer, device):
     """آموزش با در نظر گرفتن path risk"""
@@ -261,11 +247,7 @@ def validate_epoch(model, val_loader, criterion, path_risk_criterion, device):
     pra = path_risk_accuracy / num_paths if num_paths > 0 else 0
 
     return total_loss / len(val_loader), all_preds, all_labels, all_probs, pra
-
-# ===========================
-# ENHANCED Evaluation Function with PRA
-# ===========================
-
+ 
 def evaluate_model(model, test_loader, device, threshold=0.5):
     """ارزیابی جامع مدل شامل PRA"""
     model.eval()
@@ -275,7 +257,7 @@ def evaluate_model(model, test_loader, device, threshold=0.5):
     path_risk_correct = 0
     total_paths = 0
 
-    print(f"\n📊 Evaluating model on test set (threshold={threshold:.2f})...")
+    print(f"\n Evaluating model on test set (threshold={threshold:.2f})...")
 
     with torch.no_grad():
         for batch in test_loader:
@@ -285,8 +267,7 @@ def evaluate_model(model, test_loader, device, threshold=0.5):
                     batch['paths'][i][key] = batch['paths'][i][key].to(device)
             labels = batch['labels'].to(device)
 
-            # محاسبه path risk labels
-            path_risk_labels = []
+             path_risk_labels = []
             for i in range(len(batch['paths'])):
                 risk_label = calculate_path_risk_label(batch['paths'][i])
                 path_risk_labels.append(risk_label)
@@ -306,8 +287,7 @@ def evaluate_model(model, test_loader, device, threshold=0.5):
             all_labels.extend(labels.cpu().numpy())
             all_probs.extend(probs.cpu().numpy())
 
-    # محاسبه همه 5 معیار
-    metrics = {
+     metrics = {
         'f1': f1_score(all_labels, all_preds, zero_division=0),
         'precision': precision_score(all_labels, all_preds, zero_division=0),
         'recall': recall_score(all_labels, all_preds, zero_division=0),
@@ -325,7 +305,7 @@ def evaluate_model(model, test_loader, device, threshold=0.5):
 def print_results(metrics, scenario_name):
     """نمایش زیبای نتایج شامل PRA"""
     print(f"\n{'='*60}")
-    print(f"📊 Results for {scenario_name}")
+    print(f"  Results for {scenario_name}")
     print(f"{'='*60}")
     print(f"F1-Score:              {metrics['f1']:.4f}")
     print(f"Precision:             {metrics['precision']:.4f}")
@@ -340,12 +320,9 @@ def print_results(metrics, scenario_name):
         print(f"Actual Safe     [{cm[0,0]:4d}  {cm[0,1]:4d}]")
         print(f"       Vuln     [{cm[1,0]:4d}  {cm[1,1]:4d}]")
     else:
-        print("   ⚠️ Warning: Only one class in predictions")
+        print("   Warning: Only one class in predictions")
 
-# ===========================
-# بقیه کد (توابع train_model، find_best_threshold و run_experiments)
-# ===========================
-
+ 
 def train_model(model, train_loader, val_loader, num_epochs=50,
                 learning_rate=0.001, weight_decay=1e-4, class_weights=None, device='cpu'):
     """آموزش کامل مدل با PRA"""
@@ -366,7 +343,7 @@ def train_model(model, train_loader, val_loader, num_epochs=50,
     best_val_f1 = 0
     best_model_state = None
 
-    print("\n🚀 Starting training with Path Risk Accuracy...")
+    print("\n  Starting training with Path Risk Accuracy...")
     print("-" * 60)
 
     start_time = time.time()
@@ -417,7 +394,7 @@ def train_model(model, train_loader, val_loader, num_epochs=50,
             print(f"  LR: {optimizer.param_groups[0]['lr']:.6f}")
 
     total_time = time.time() - start_time
-    print(f"\n✅ Training completed in {total_time/60:.1f} minutes")
+    print(f"\n  Training completed in {total_time/60:.1f} minutes")
     print(f"   Best validation F1: {best_val_f1:.4f}")
 
     model.load_state_dict(best_model_state)
@@ -430,7 +407,7 @@ def find_best_threshold(model, val_loader, device, optimize_for='f1'):
     all_probs = []
     all_labels = []
 
-    print(f"\n🔍 Finding optimal threshold (optimizing for {optimize_for})...")
+    print(f"\n  Finding optimal threshold (optimizing for {optimize_for})...")
 
     with torch.no_grad():
         for batch in val_loader:
@@ -475,11 +452,10 @@ def find_best_threshold(model, val_loader, device, optimize_for='f1'):
     return best_threshold
 
 def run_experiments():
-    """اجرای هر دو سناریو با PRA"""
-
+ 
     base_path = r"C:\Users\Hadis\Documents\NewModel1"
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"🖥️ Using device: {device}")
+    print(f" Using device: {device}")
 
     BATCH_SIZE = 16
     NUM_EPOCHS = 30
@@ -487,7 +463,7 @@ def run_experiments():
 
     # ===== Experiment 1: Balanced Dataset =====
     print("\n" + "="*80)
-    print("🔬 Experiment 1: Balanced Dataset")
+    print(" Experiment 1: Balanced Dataset")
     print("="*80)
 
     dataset_balanced = SmartContractDataset(
@@ -511,22 +487,20 @@ def run_experiments():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
 
-    print(f"\n📊 Dataset splits:")
+    print(f"\n Dataset splits:")
     print(f"   Train: {len(train_dataset)} samples")
     print(f"   Val: {len(val_dataset)} samples")
     print(f"   Test: {len(test_dataset)} samples")
 
-    # مدل جدید با PRA
-    model_balanced = TaintSentinelWithPRA()
+     model_balanced = TaintSentinelWithPRA()
 
-    # آموزش یا بارگذاری مدل
-    try:
+     try:
         model_balanced.load_state_dict(torch.load('taintsentinel_balanced_with_pra.pt'))
         model_balanced = model_balanced.to(device)
-        print("✅ Loaded pre-trained balanced model with PRA")
+        print(" Loaded pre-trained balanced model with PRA")
         history_balanced = None
     except:
-        print("🔄 Training new model with PRA...")
+        print(" Training new model with PRA...")
         model_balanced, history_balanced = train_model(
             model_balanced,
             train_loader,
@@ -542,7 +516,7 @@ def run_experiments():
 
     # ===== Experiment 2: Imbalanced Dataset =====
     print("\n\n" + "="*80)
-    print("🔬 Experiment 2: Imbalanced Dataset")
+    print(" Experiment 2: Imbalanced Dataset")
     print("="*80)
 
     dataset_imbalanced = SmartContractDataset(
@@ -561,7 +535,7 @@ def run_experiments():
     weight_vuln = total / (2 * num_vuln)
     class_weights = [weight_safe, weight_vuln]
 
-    print(f"\n⚖️ Class distribution:")
+    print(f"\n Class distribution:")
     print(f"   Safe: {num_safe} ({num_safe/total*100:.1f}%)")
     print(f"   Vulnerable: {num_vuln} ({num_vuln/total*100:.1f}%)")
     print(f"   Class weights: Safe={class_weights[0]:.2f}, Vulnerable={class_weights[1]:.2f}")
@@ -580,22 +554,20 @@ def run_experiments():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=custom_collate_fn)
 
-    print(f"\n📊 Dataset splits:")
+    print(f"\n Dataset splits:")
     print(f"   Train: {len(train_dataset)} samples")
     print(f"   Val: {len(val_dataset)} samples")
     print(f"   Test: {len(test_dataset)} samples")
 
-    # مدل جدید با PRA
-    model_imbalanced = TaintSentinelWithPRA()
+     model_imbalanced = TaintSentinelWithPRA()
 
-    # آموزش یا بارگذاری مدل
-    try:
+     try:
         model_imbalanced.load_state_dict(torch.load('taintsentinel_imbalanced_with_pra.pt'))
         model_imbalanced = model_imbalanced.to(device)
-        print("✅ Loaded pre-trained imbalanced model with PRA")
+        print(" Loaded pre-trained imbalanced model with PRA")
         history_imbalanced = None
     except:
-        print("🔄 Training new model with PRA...")
+        print(" Training new model with PRA...")
         model_imbalanced, history_imbalanced = train_model(
             model_imbalanced,
             train_loader,
@@ -615,14 +587,14 @@ def run_experiments():
 
     metrics_imbalanced = evaluate_model(model_imbalanced, test_loader, device, threshold=best_threshold_imbalanced)
 
-    print(f"\n📊 Initial Recall: {metrics_imbalanced['recall']:.4f}")
+    print(f"\n Initial Recall: {metrics_imbalanced['recall']:.4f}")
     if metrics_imbalanced['recall'] < 0.65:
-        print("⚠️ Recall is still low, trying more aggressive threshold...")
+        print(" Recall is still low, trying more aggressive threshold...")
         aggressive_threshold = max(0.05, best_threshold_imbalanced - 0.10)
         print(f"   Testing threshold: {aggressive_threshold:.2f}")
         metrics_aggressive = evaluate_model(model_imbalanced, test_loader, device, threshold=aggressive_threshold)
         if metrics_aggressive['recall'] > metrics_imbalanced['recall'] + 0.10:
-            print(f"   ✅ Better recall achieved: {metrics_aggressive['recall']:.4f}")
+            print(f"   Better recall achieved: {metrics_aggressive['recall']:.4f}")
             metrics_imbalanced = metrics_aggressive
             best_threshold_imbalanced = aggressive_threshold
 
@@ -630,7 +602,7 @@ def run_experiments():
 
     # ===== Final Comparison =====
     print("\n\n" + "="*80)
-    print("📊 Final Comparison (All 5 Metrics)")
+    print("  Final Comparison (All 5 Metrics)")
     print("="*80)
     print(f"\n{'Metric':<20} {'Balanced':<12} {'Imbalanced':<12}")
     print("-" * 45)
@@ -645,32 +617,29 @@ def run_experiments():
         'imbalanced': {'model': model_imbalanced, 'metrics': metrics_imbalanced, 'history': history_imbalanced}
     }
 
-# ===========================
-# Run Everything
-# ===========================
-
+ 
 if __name__ == "__main__":
-    print("🚀 TaintSentinel Complete Training Pipeline with Path Risk Accuracy (PRA)")
+    print("  TaintSentinel Complete Training Pipeline with Path Risk Accuracy (PRA)")
     print("="*80)
 
     try:
         results = run_experiments()
 
         print("\n\n" + "="*80)
-        print("✅ All experiments completed successfully!")
+        print(" All experiments completed successfully!")
         print("="*80)
 
         # ذخیره مدل‌ها
         torch.save(results['balanced']['model'].state_dict(), 'taintsentinel_balanced_with_pra.pt')
         torch.save(results['imbalanced']['model'].state_dict(), 'taintsentinel_imbalanced_with_pra.pt')
-        print("\n💾 Models saved successfully!")
+        print("\n Models saved successfully!")
 
         # نمایش خلاصه PRA
-        print("\n📊 Path Risk Accuracy Summary:")
+        print("\n Path Risk Accuracy Summary:")
         print(f"   Balanced Dataset PRA: {results['balanced']['metrics']['pra']:.4f}")
         print(f"   Imbalanced Dataset PRA: {results['imbalanced']['metrics']['pra']:.4f}")
 
     except Exception as e:
-        print(f"\n❌ Error: {str(e)}")
+        print(f"\n Error: {str(e)}")
         import traceback
         traceback.print_exc()
