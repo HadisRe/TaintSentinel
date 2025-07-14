@@ -22,11 +22,11 @@ This dataset contains Ethereum smart contracts for detecting bad randomness vuln
 ```
 TaintSentinel-Dataset/
 ├── contracts/
-│   ├── vulnerable/         # 231 contracts with bad randomness
-│   └── safe/              # 4,236 contracts without vulnerabilities
-├── dataset_metadata.json   # Complete metadata with all contract information
-├── contracts_list.json     # Simple list of contract addresses
-└── README.md              # This file
+│   ├── vulnerable/         
+│   └── safe/               
+├── dataset_metadata.json   
+├── contracts_list.json      
+└── README.md              
 ```
  
 
