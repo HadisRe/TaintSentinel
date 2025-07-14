@@ -29,8 +29,6 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
 
 ### Prerequisites
 
-### Prerequisites
-
 - Python 3.8+
 - PyTorch 1.12+
 - PyTorch Geometric
@@ -50,4 +48,4 @@ TaintSentinel is a novel dual-stream Graph Neural Network (GNN) approach designe
 
 ### Dataset
 
-The TaintSentinel dataset contains 2,017 smart contracts (148 vulnerable, 1,869 safe). Dataset is included in the repository under `dataset/contracts/`.
+The TaintSentinel dataset contains 4,487 smart contracts (231 vulnerable, 4,256 safe) organized in two batches. Dataset is included in the repository under `dataset/contracts/`.
