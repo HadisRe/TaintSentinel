@@ -28,10 +28,7 @@ TaintSentinel-Dataset/
 ├── contracts_list.json     # Simple list of contract addresses
 └── README.md              # This file
 ```
-
-## Version History
-- v1.1: Added batch2 contracts
-- v1.0: Initial release with batch1 contracts
+ 
 
 ## File Format
 All contracts are in Solidity format (.sol files) and are named by their Ethereum address.
@@ -68,5 +65,3 @@ If you use this dataset in your research, please cite:
 }
 ```
 
-## License
-This dataset is released under the MIT License.
