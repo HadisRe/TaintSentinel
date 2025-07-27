@@ -36,7 +36,7 @@ function play() external {
 }
 ```
 
-####  **SAFE Patterns:**
+####  **Safe Patterns:**
 ```solidity
 // Safe: Time gates with sufficient margin (>15 seconds)
 require(block.timestamp >= saleEndTime);               // Time-based access control
@@ -64,9 +64,7 @@ The Context Analysis Matrix for block.timestamp reveals critical distinctions be
 | Long-term comparisons | ✅ | ❌ | Hours/days tolerance |
 
 
-**References:** 
-- [ConsenSys Best Practices - Timestamp Dependence](https://consensys.github.io/smart-contract-best-practices/development-recommendations/solidity-specific/timestamp-dependence/)
-- [Smart Contract Vulnerabilities - Timestamp Dependence](https://github.com/KadenZipfel/smart-contract-attack-vectors/blob/master/vulnerabilities/timestamp-dependence.md)
+
 ---
 
 ### 2. **blockhash()**
@@ -200,11 +198,6 @@ require(block.number >= lastActionBlock[msg.sender] + 100); // Block-based coold
 **Block Number Safety in Non-Randomness Contexts:** Conversely, `block.number` achieves safety when used for legitimate timing control and sequential operations that don't rely on unpredictability. Access control timing, duration calculations, and rate limiting mechanisms leverage block numbers for their intended purpose - providing a reliable, monotonically increasing counter for blockchain state progression. These safe patterns work because they don't depend on randomness; instead, they utilize the predictable nature of block progression for legitimate business logic such as auction deadlines, cooldown periods, and launch timing. The DASP Top 10 security framework specifically acknowledges this distinction, noting that while block variables are dangerous for randomness, they remain appropriate for deterministic timing operations where predictability is actually desired rather than problematic.
 
 ---
-**References:** 
-- [DASP Top 10 - Bad Randomness](https://dasp.co/)
-- [IEEE Transactions on Software Engineering - Demystifying Random Number Vulnerabilities](https://dl.acm.org/doi/10.1109/TSE.2023.3271417)
-- [Exploiting Predictable Randomness in Ethereum Smart Contracts](https://www.kayssel.com/post/web3-2-lottery/)
-- [ImmuneBytes - Smart Contract Vulnerabilities](https://immunebytes.com/blog/smart-contract-vulnerabilities/)
 
 ### 4. **block.difficulty / block.prevrandao**
 
@@ -268,13 +261,6 @@ function verifyEpochTransition(uint epochNumber) external view {
 **Block Difficulty/PREVRANDAO Pre-Merge vs Post-Merge Analysis:** The transition from `block.difficulty` to `block.prevrandao` via EIP-4399 fundamentally changed the underlying mechanism but did not resolve the core randomness vulnerability. Pre-merge, `block.difficulty` was manipulable by miners who could influence difficulty adjustments and timing attacks. Post-merge, `block.prevrandao` represents the beacon chain's RANDAO value, which, while more sophisticated than PoW difficulty, remains vulnerable to validator manipulation through the "last revealer attack" as documented in recent research. According to the official EIP-4399 specification, each block proposer maintains "1 bit of influence power per slot," allowing validators to either propose a block with their RANDAO contribution or withhold it entirely, creating predictable bias in subsequent randomness outputs. This manipulation capability persists regardless of whether the value is used directly or processed through hash functions.
 
 **RANDAO Manipulation Techniques and Their Impact:** Current research from the Ethereum community and recent cryptographic analyses reveal multiple attack vectors against RANDAO-based randomness. The most significant is block withholding, where proposers can deliberately skip their assigned slots to influence future RANDAO mixes, with the limitation that their influence lasts only until the next honest proposal. More concerning for smart contract applications is transaction censoring, where proposers can delay specific transactions to force them into blocks with known RANDAO values, as highlighted in Zellic's security research. Additionally, when validators control consecutive slots (which occurs naturally in the protocol), they can explore multiple possible outcomes before committing to a strategy. The Ethereum Foundation's own documentation acknowledges these limitations, explicitly stating that RANDAO is designed for consensus-layer security rather than application-layer randomness, making external oracles like Chainlink VRF necessary for secure on-chain randomness in financial applications.
- 
-**References:** 
-- [EIP-4399: Supplant DIFFICULTY opcode with PREVRANDAO](https://eips.ethereum.org/EIPS/eip-4399)
-- [Ethereum.org - Block Proposal](https://ethereum.org/en/developers/docs/consensus-mechanisms/pos/block-proposal/)
-- [ETH2 Book - Randomness](https://eth2book.info/latest/part2/building_blocks/randomness/)
-- [Zellic Research - ETH 2 Proof-of-Stake Developer Guide](https://www.zellic.io/blog/eth2-proof-of-stake-developer-guide/)
-- [Forking the RANDAO: Manipulating Ethereum's Distributed Randomness Beacon (2025)](https://eprint.iacr.org/2025/037)
 
 ---
 
@@ -357,42 +343,27 @@ bytes32 safe = keccak256(abi.encodePacked(
 
 ** Key Principle:** Hash functions are cryptographically secure; the vulnerability lies in predictable inputs. Using `keccak256(weak_input)` doesn't make the weak input secure.
 
-
-
-
-
-## Historical Cases
-
-### **Notable Historical Exploits:**
-
-#### **SmartBillions (2018)**
-- **Loss:** 400+ ETH (~$120,000)
-- **Vulnerability:** Weak randomness in lottery contract
-- **Reference:** [Security Boulevard Analysis](https://securityboulevard.com/2018/01/predicting-random-numbers-in-ethereum-smart-contracts/)
-
-#### **FOMO3D Style Games (2018-2019)**
-- **Loss:** Multiple incidents
-- **Vulnerability:** `block.number` prediction and block stuffing
-- **Reference:** [Academic Security Analysis](https://arxiv.org/abs/1902.05749)
-
 ---
 
 
 
 ## References
- - [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
-- [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
-- [NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
-
 - [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
 - [ConsenSys Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/)
+- [ConsenSys Best Practices - Timestamp Dependence](https://consensys.github.io/smart-contract-best-practices/development-recommendations/solidity-specific/timestamp-dependence/)
+- [ConsenSys Smart Contract Best Practices - Randomness](https://consensys.github.io/smart-contract-best-practices/attacks/randomness/)
+- [NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
 - [EIP-4399: PREVRANDAO](https://eips.ethereum.org/EIPS/eip-4399)
+- [Smart Contract Vulnerabilities - Timestamp Dependence](https://github.com/KadenZipfel/smart-contract-attack-vectors/blob/master/vulnerabilities/timestamp-dependence.md)
+- [OWASP Smart Contract Top 10 - Insufficient Entropy](https://owasp.org/www-project-smart-contract-top-10/)
+- [Ethereum Yellow Paper - Block Header Specification](https://ethereum.github.io/yellowpaper/paper.pdf)
+- [DASP Top 10 - Bad Randomness](https://dasp.co/)
+- [IEEE Transactions on Software Engineering - Demystifying Random Number Vulnerabilities](https://dl.acm.org/doi/10.1109/TSE.2023.3271417)
+- [Exploiting Predictable Randomness in Ethereum Smart Contracts](https://www.kayssel.com/post/web3-2-lottery/)
+- [ImmuneBytes - Smart Contract Vulnerabilities](https://immunebytes.com/blog/smart-contract-vulnerabilities/)
+- [Ethereum.org - Block Proposal](https://ethereum.org/en/developers/docs/consensus-mechanisms/pos/block-proposal/)
+- [ETH2 Book - Randomness](https://eth2book.info/latest/part2/building_blocks/randomness/)
+- [Zellic Research - ETH 2 Proof-of-Stake Developer Guide](https://www.zellic.io/blog/eth2-proof-of-stake-developer-guide/)
 
-- **[ConsenSys Smart Contract Best Practices - Randomness](https://consensys.github.io/smart-contract-best-practices/attacks/randomness/)**
-- **[OWASP Smart Contract Top 10 - Insufficient Entropy](https://owasp.org/www-project-smart-contract-top-10/)**
-- **[SWC Registry - Weak Sources of Randomness (SWC-120)](https://swcregistry.io/docs/SWC-120)**
-- **[Ethereum Improvement Proposals - EIP-4399 (PREVRANDAO)](https://eips.ethereum.org/EIPS/eip-4399)**
-- **[Ethereum Yellow Paper - Block Header Specification](https://ethereum.github.io/yellowpaper/paper.pdf)**
- 
 ---
 
