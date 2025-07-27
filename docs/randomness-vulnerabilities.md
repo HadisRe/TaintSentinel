@@ -329,7 +329,7 @@ contract FalseEntropy {
 }
 ```
 
-**⚡ Universal Rule:** Combining weak sources NEVER creates strong randomness
+** Universal Rule:** Combining weak sources NEVER creates strong randomness
 
 ---
 
@@ -343,24 +343,19 @@ contract FalseEntropy {
 ### **Security Analysis**
 
 ```solidity
-// ❌ Weak inputs = weak output (regardless of hash function)
+//  Weak inputs = weak output (regardless of hash function)
 bytes32 bad1 = keccak256(abi.encodePacked(block.timestamp, msg.sender));
 bytes32 bad2 = sha256(abi.encodePacked(block.timestamp, msg.sender));
 bytes32 bad3 = ripemd160(abi.encodePacked(block.timestamp, msg.sender));
 
-// ✅ Secure inputs = secure output
+// Secure inputs = secure output
 bytes32 safe = keccak256(abi.encodePacked(
     oracleRandomness,    // External secure source (Chainlink VRF)
     userCommitment       // Proper commit-reveal scheme
 ));
 ```
 
-**⚡ Key Principle:** Hash functions are cryptographically secure; the vulnerability lies in predictable inputs. Using `keccak256(weak_input)` doesn't make the weak input secure.
-
-**References:**
-- [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
-- [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
-- [NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
+** Key Principle:** Hash functions are cryptographically secure; the vulnerability lies in predictable inputs. Using `keccak256(weak_input)` doesn't make the weak input secure.
 
 
 
@@ -382,23 +377,12 @@ bytes32 safe = keccak256(abi.encodePacked(
 
 ---
 
-## Industry Standards and Guidelines
 
-### **Ethereum Improvement Proposals:**
-- **[EIP-4399](https://eips.ethereum.org/EIPS/eip-4399):** PREVRANDAO opcode specification
-
-### **Security Standards:**
-- **[SWC Registry](https://swcregistry.io/):** Smart Contract Weakness Classification
-- **[OWASP Smart Contract Top 10](https://owasp.org/www-project-smart-contract-top-10/):** Security risks
-- **[ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/):** Industry guidelines
-
-### **Technical Specifications:**
-- **[Ethereum Yellow Paper](https://ethereum.github.io/yellowpaper/paper.pdf):** Protocol specification
-- **[NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf):** Cryptographic hash standards
-
----
 
 ## References
+ - [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
+- [ConsenSys Best Practices](https://consensys.github.io/smart-contract-best-practices/)
+- [NIST FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
 
 - [SWC-120: Weak Sources of Randomness](https://swcregistry.io/docs/SWC-120)
 - [ConsenSys Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/)
