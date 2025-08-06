@@ -5,7 +5,7 @@ import json
 import logging
 from typing import Dict, List, Any, Optional, Tuple, Set
 from collections import defaultdict
-from pathlib import Path  # اضافه شد
+from pathlib import Path    
 
  logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
