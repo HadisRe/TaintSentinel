@@ -145,12 +145,7 @@ The blockhash() function presents a more complex vulnerability landscape due to 
 | Combination with user input | ❌ | ✅ | Still manipulable |
 
 
-**References:** 
-- [Ethereum Stack Exchange - 256 Block Limitation](https://ethereum.stackexchange.com/questions/418/why-are-contracts-limited-to-only-the-previous-256-block-hashes)
-- [Smart Contract Security Testing Guide - Randomness](https://docs.inspex.co/smart-contract-security-testing-guide/testing-categories/7-testing-randomness)
-- [SlowMist - Common Vulnerabilities in Solidity: Randomness](https://www.slowmist.com/articles/solidity-security/Common-Vulnerabilities-in-Solidity-Randomness.html)
-- [Gitcoin Blog - Commit Reveal Scheme on Ethereum](https://www.gitcoin.co/blog/commit-reveal-scheme-on-ethereum)
----
+ 
 ### 3. **block.number**
  ```solidity
 // Vulnerability Type: PRIMARY - Completely predictable
@@ -256,6 +251,54 @@ function verifyEpochTransition(uint epochNumber) external view {
 
 ---
 
+## 5. block.gaslimit
+
+```solidity
+// Vulnerability Type: PRIMARY - Miner can adjust gas limit within protocol bounds
+uint random = block.gaslimit % 100;                   // Miner influence possible
+bytes32 seed = keccak256(abi.encodePacked(block.gaslimit)); // Hash does not fix weakness
+
+// Gambling exploit pattern
+function lottery() external {
+    uint winner = uint(keccak256(abi.encodePacked(block.gaslimit, msg.sender))) % players.length;
+    payable(players[winner]).transfer(prize);         // Miner can influence outcome
+}
+
+// Combined with other weak sources
+function badRandom() external view returns (uint) {
+    return uint(keccak256(abi.encodePacked(
+        block.gaslimit,
+        block.timestamp,
+        block.number
+    ))) % 1000;                                       // All inputs are manipulable
+}
+```
+
+Safe Patterns:
+
+```solidity
+// Safe: Gas limit checks for contract operations
+require(block.gaslimit >= 8000000, "Gas limit too low");
+
+// Safe: Estimating available gas for operations
+if (block.gaslimit > 10000000) {
+    performHeavyOperation();
+}
+```
+
+Context Analysis Matrix:
+
+The block.gaslimit value represents the maximum gas allowed in a block. Miners have the ability to adjust this value within certain protocol-defined bounds. While the adjustment range is limited, it still provides enough flexibility for miners to influence outcomes in randomness-dependent applications. The gas limit changes gradually between blocks, making it somewhat predictable. When combined with other weak sources, it adds minimal entropy and should never be trusted for random number generation.
+
+| Usage Context | Safe | Vulnerable | Notes |
+|---------------|------|------------|-------|
+| Direct randomness generation | No | Yes | Miner can adjust within bounds |
+| Modulo operations | No | Yes | Predictable patterns |
+| Combined with other block values | No | Yes | Does not improve entropy |
+| Gas availability checks | Yes | No | Legitimate operational use |
+| Contract capacity planning | Yes | No | Non-randomness purpose |
+
+
 ## **Context Analysis Matrix Explanations**
 
 **Block Difficulty/PREVRANDAO Pre-Merge vs Post-Merge Analysis:** The transition from `block.difficulty` to `block.prevrandao` via EIP-4399 fundamentally changed the underlying mechanism but did not resolve the core randomness vulnerability. Pre-merge, `block.difficulty` was manipulable by miners who could influence difficulty adjustments and timing attacks. Post-merge, `block.prevrandao` represents the beacon chain's RANDAO value, which, while more sophisticated than PoW difficulty, remains vulnerable to validator manipulation through the "last revealer attack" as documented in recent research. According to the official EIP-4399 specification, each block proposer maintains "1 bit of influence power per slot," allowing validators to either propose a block with their RANDAO contribution or withhold it entirely, creating predictable bias in subsequent randomness outputs. This manipulation capability persists regardless of whether the value is used directly or processed through hash functions.
@@ -263,6 +306,63 @@ function verifyEpochTransition(uint epochNumber) external view {
 **RANDAO Manipulation Techniques and Their Impact:** Current research from the Ethereum community and recent cryptographic analyses reveal multiple attack vectors against RANDAO-based randomness. The most significant is block withholding, where proposers can deliberately skip their assigned slots to influence future RANDAO mixes, with the limitation that their influence lasts only until the next honest proposal. More concerning for smart contract applications is transaction censoring, where proposers can delay specific transactions to force them into blocks with known RANDAO values, as highlighted in Zellic's security research. Additionally, when validators control consecutive slots (which occurs naturally in the protocol), they can explore multiple possible outcomes before committing to a strategy. The Ethereum Foundation's own documentation acknowledges these limitations, explicitly stating that RANDAO is designed for consensus-layer security rather than application-layer randomness, making external oracles like Chainlink VRF necessary for secure on-chain randomness in financial applications.
 
 ---
+
+
+## 6. block.coinbase
+
+```solidity
+// Vulnerability Type: PRIMARY - Known to miner before block is mined
+uint random = uint(block.coinbase) % 100;             // Miner knows their own address
+bytes32 seed = keccak256(abi.encodePacked(block.coinbase)); // Predictable to miner
+
+// Vulnerable lottery using coinbase
+function pickWinner() external {
+    uint index = uint(keccak256(abi.encodePacked(
+        block.coinbase,
+        block.timestamp
+    ))) % participants.length;
+    winner = participants[index];                     // Miner can predict outcome
+}
+
+// False security with multiple sources
+function generateRandom() external view returns (uint) {
+    return uint(keccak256(abi.encodePacked(
+        block.coinbase,
+        block.difficulty,
+        block.number
+    ))) % 1000;                                       // Miner controls all inputs
+}
+```
+
+Safe Patterns:
+
+```solidity
+// Safe: Identifying block miner for logging
+event BlockMined(address indexed miner, uint blockNumber);
+
+function logMiner() external {
+    emit BlockMined(block.coinbase, block.number);
+}
+
+// Safe: Miner reward distribution
+function distributeMinerReward() external {
+    payable(block.coinbase).transfer(reward);
+}
+```
+
+Context Analysis Matrix:
+
+The block.coinbase variable returns the address of the miner who mines the current block. Since miners know their own address before mining, they can easily predict any value derived from it. This makes block.coinbase completely unsuitable for randomness generation. The only legitimate uses are for identifying the block miner or distributing mining rewards.
+
+| Usage Context | Safe | Vulnerable | Notes |
+|---------------|------|------------|-------|
+| Direct randomness generation | No | Yes | Miner knows own address |
+| Seed for random functions | No | Yes | Completely predictable to miner |
+| Combined with other sources | No | Yes | Does not add unpredictability |
+| Miner identification | Yes | No | Intended purpose |
+| Reward distribution | Yes | No | Non-randomness use case |
+| Event logging | Yes | No | Informational only |
+
 
 ## Additional Considerations
 
@@ -365,5 +465,9 @@ bytes32 safe = keccak256(abi.encodePacked(
 - [ETH2 Book - Randomness](https://eth2book.info/latest/part2/building_blocks/randomness/)
 - [Zellic Research - ETH 2 Proof-of-Stake Developer Guide](https://www.zellic.io/blog/eth2-proof-of-stake-developer-guide/)
 
+- [Ethereum Stack Exchange - 256 Block Limitation](https://ethereum.stackexchange.com/questions/418/why-are-contracts-limited-to-only-the-previous-256-block-hashes)
+- [Smart Contract Security Testing Guide - Randomness](https://docs.inspex.co/smart-contract-security-testing-guide/testing-categories/7-testing-randomness)
+- [SlowMist - Common Vulnerabilities in Solidity: Randomness](https://www.slowmist.com/articles/solidity-security/Common-Vulnerabilities-in-Solidity-Randomness.html)
+- [Gitcoin Blog - Commit Reveal Scheme on Ethereum](https://www.gitcoin.co/blog/commit-reveal-scheme-on-ethereum)
 ---
 
