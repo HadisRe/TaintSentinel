@@ -366,17 +366,79 @@ The block.coinbase variable returns the address of the miner who mines the curre
 
 ## Additional Considerations
 
-### Rarely Used but Potentially Vulnerable Sources
+## Rarely Used but Potentially Vulnerable Sources
 
-While the four primary sources above represent the most commonly misused randomness sources in smart contracts, developers should be aware that **any deterministic or user-controlled value** can create vulnerabilities when used for randomness generation.
+While the primary sources above represent the most commonly exploited randomness vulnerabilities, developers should be aware of additional sources that can create security issues when misused.
 
-**Less Common Sources:**
-- `tx.gasprice` - User-controlled gas price
-- `gasleft()` - Execution-dependent remaining gas
-- `msg.sender` - User-controlled caller address
-- `tx.origin` - Transaction origin address
+### gasleft()
 
-Although these sources are **rarely documented** in security literature as randomness sources, they remain **theoretically exploitable** if used for random number generation due to their predictable or user-controllable nature.
+The gasleft() function returns the remaining gas in the current transaction. Since users control how much gas they send with a transaction, this value can be manipulated.
+
+```solidity
+// Vulnerable: User can manipulate remaining gas
+function vulnerableRandom() external view returns (uint) {
+    return uint(keccak256(abi.encodePacked(gasleft()))) % 100;
+}
+
+// Vulnerable: Combined with other weak sources
+function badSeed() external view returns (uint) {
+    uint seed = gasleft() + block.timestamp;
+    return uint(keccak256(abi.encodePacked(seed))) % 1000;
+}
+
+// Attack scenario: Attacker adjusts gas to influence outcome
+// By sending specific gas amounts, attacker can control gasleft() value
+```
+
+### tx.gasprice
+
+The transaction gas price is entirely controlled by the user submitting the transaction. It provides zero unpredictability for randomness purposes.
+
+```solidity
+// Vulnerable: User controls gas price
+function vulnerableRandom() external view returns (uint) {
+    return uint(keccak256(abi.encodePacked(tx.gasprice))) % 100;
+}
+
+// Vulnerable: Combining user-controlled values
+function badRandom() external view returns (uint) {
+    return uint(keccak256(abi.encodePacked(
+        tx.gasprice,
+        msg.sender,
+        block.timestamp
+    ))) % 1000;    // tx.gasprice and msg.sender are user-controlled
+}
+```
+
+### tx.origin and msg.sender
+
+Both values are controlled by the user initiating the transaction. While commonly used for authentication, they should never contribute to randomness generation.
+
+```solidity
+// Vulnerable: User controls their own address
+function vulnerableRandom() external view returns (uint) {
+    return uint(keccak256(abi.encodePacked(msg.sender))) % 100;
+}
+
+// Vulnerable: Attacker can create contracts at predictable addresses
+function badLottery() external view returns (uint) {
+    return uint(keccak256(abi.encodePacked(
+        tx.origin,
+        block.number
+    ))) % participants.length;
+}
+```
+
+Summary Table for Rarely Used Sources:
+
+| Source | Controller | Vulnerability Level | Common Misuse |
+|--------|------------|---------------------|---------------|
+| gasleft() | User | High | Seed generation |
+| tx.gasprice | User | High | Combined with block values |
+| tx.origin | User | High | Lottery selection |
+| msg.sender | User | High | Random seed component |
+
+These sources share a common weakness: they are either directly controlled by users or can be predicted before transaction execution. Even when combined with block-level variables, they do not provide meaningful entropy for secure randomness generation.
 
 ---
 
